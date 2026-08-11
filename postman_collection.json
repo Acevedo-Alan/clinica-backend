@@ -1,0 +1,103 @@
+{
+  "info": {
+    "name": "Clinica - Backend Semana 1",
+    "description": "Setup, conexion a la base y autenticacion",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/health", "host": ["{{base_url}}"], "path": ["health"] }
+      }
+    },
+    {
+      "name": "Listar Coberturas",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/coberturas", "host": ["{{base_url}}"], "path": ["coberturas"] }
+      }
+    },
+    {
+      "name": "Registro de Paciente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "  console.log('Usuario registrado correctamente');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Perez\",\n  \"dni\": \"30111222\",\n  \"email\": \"juan@test.com\",\n  \"password\": \"123456\",\n  \"fecha_nacimiento\": \"1995-05-20\",\n  \"telefono\": \"3424000000\",\n  \"id_cobertura\": 1\n}"
+        },
+        "url": { "raw": "{{base_url}}/auth/registro", "host": ["{{base_url}}"], "path": ["auth", "registro"] }
+      }
+    },
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const data = pm.response.json();",
+              "if (data && data.datos && data.datos.token) {",
+              "  pm.collectionVariables.set('token', data.datos.token);",
+              "  console.log('Token guardado en variable {{token}}');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"juan@test.com\",\n  \"password\": \"123456\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+      }
+    },
+    {
+      "name": "Perfil (protegido - verificarToken)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{base_url}}/auth/perfil", "host": ["{{base_url}}"], "path": ["auth", "perfil"] }
+      }
+    },
+    {
+      "name": "Perfil sin token (debe dar 401)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/auth/perfil", "host": ["{{base_url}}"], "path": ["auth", "perfil"] }
+      }
+    },
+    {
+      "name": "Listar Usuarios (protegido - verificarRol admin/operador)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{base_url}}/auth/usuarios", "host": ["{{base_url}}"], "path": ["auth", "usuarios"] }
+      }
+    }
+  ]
+}

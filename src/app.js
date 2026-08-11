@@ -1,0 +1,33 @@
+import express from "express";
+import cors from "cors";
+import pool from "./database/db.js";
+import { respuestaOk, respuestaError } from "./utils/respuesta.js";
+
+import authRoutes from "./routes/authRoutes.js";
+import coberturaRoutes from "./routes/coberturaRoutes.js";
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+// GET /health - prueba la conexión a la base antes de avanzar con el resto
+app.get("/health", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    return respuestaOk(res, 200, { mensaje: "Servidor arriba y conectado a la base de datos" });
+  } catch (error) {
+    console.error("Error de conexión a la base:", error);
+    return respuestaError(res, 500, "No se pudo conectar a la base de datos");
+  }
+});
+
+app.use("/auth", authRoutes);
+app.use("/coberturas", coberturaRoutes);
+
+// 404 - también respeta el formato uniforme
+app.use((req, res) => {
+  return respuestaError(res, 404, "Recurso no encontrado");
+});
+
+export default app;
