@@ -5,6 +5,8 @@ import { respuestaOk, respuestaError } from "./utils/respuesta.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import coberturaRoutes from "./routes/coberturaRoutes.js";
+import sedeRoutes from "./routes/sedeRoutes.js";
+import especialidadRoutes from "./routes/especialidadRoutes.js";
 
 const app = express();
 
@@ -24,6 +26,8 @@ app.get("/health", async (req, res) => {
 
 app.use("/auth", authRoutes);
 app.use("/coberturas", coberturaRoutes);
+app.use("/sedes", sedeRoutes);
+app.use("/especialidades", especialidadRoutes);
 
 // 404 - también respeta el formato uniforme
 app.use((req, res) => {
