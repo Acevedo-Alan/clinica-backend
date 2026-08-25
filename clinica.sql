@@ -74,7 +74,7 @@ INSERT INTO `usuario` (`id`, `apellido`, `nombre`, `fecha_nacimiento`, `password
 (1, 'Perez', 'Juan', '1995-12-30', '$2b$10$hashdeejemplo1', 'operador', 'jperez@gmail.com', '3424568897', '15200548', 1, NULL),
 (2, 'Friggeri', 'Franco', '1998-03-14', '$2b$10$hashdeejemplo2', 'paciente', 'asdas@gaasds.com', '342545555', '36000960', NULL, 1),
 (3, 'Lopez', 'Ana', '1980-05-10', '$2b$10$hashdeejemplo3', 'medico', 'alopez@clinica.com', '3424111222', '20111222', 1, NULL),
-(4, 'Gomez', 'Marcos', '1975-08-01', '$2b$10$hashdeejemplo4', 'admin', 'mgomez@clinica.com', '3424222333', '18222333', NULL, NULL);
+(4, 'Gomez', 'Marcos', '1975-08-01', '$2b$10$hashdeejemplo4', 'administrador', 'mgomez@clinica.com', '3424222333', '18222333', NULL, NULL);
 
 -- --------------------------------------------------------
 -- Estructura de tabla para la tabla `medico_especialidad`

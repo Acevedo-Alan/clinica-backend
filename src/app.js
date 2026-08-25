@@ -5,6 +5,9 @@ import { respuestaOk, respuestaError } from "./utils/respuesta.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import coberturaRoutes from "./routes/coberturaRoutes.js";
+import sedeRoutes from "./routes/sedeRoutes.js";
+import especialidadRoutes from "./routes/especialidadRoutes.js";
+import agendaRoutes from "./routes/agendaRoutes.js";
 
 const app = express();
 
@@ -24,10 +27,21 @@ app.get("/health", async (req, res) => {
 
 app.use("/auth", authRoutes);
 app.use("/coberturas", coberturaRoutes);
+app.use("/sedes", sedeRoutes);
+app.use("/especialidades", especialidadRoutes);
+app.use("/agenda", agendaRoutes);
 
 // 404 - también respeta el formato uniforme
 app.use((req, res) => {
   return respuestaError(res, 404, "Recurso no encontrado");
+});
+
+// Errores de parsing JSON y excepciones no controladas mantienen el contrato API.
+app.use((error, req, res, next) => {
+  console.error("Error no controlado:", error);
+  const codigo = error.status === 400 ? 400 : 500;
+  const mensaje = codigo === 400 ? "JSON inválido" : "Error interno del servidor";
+  return respuestaError(res, codigo, mensaje);
 });
 
 export default app;

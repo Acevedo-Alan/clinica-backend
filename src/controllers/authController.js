@@ -109,7 +109,7 @@ export async function login(req, res) {
   }
 }
 
-// GET /auth/usuarios (protegido: verificarToken + verificarRol("admin","operador"))
+// GET /auth/usuarios (protegido: verificarToken + verificarRol("administrador","operador"))
 // Endpoint de prueba pensado para validar el middleware verificarRol.
 export async function listarUsuarios(req, res) {
   try {

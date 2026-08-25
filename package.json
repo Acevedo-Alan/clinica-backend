@@ -1,7 +1,7 @@
 {
   "name": "clinica-backend",
   "version": "1.0.0",
-  "description": "Backend - Sistema de Gestion de Turnos Medicos - Semana 1 (Setup, DB, Auth)",
+  "description": "Backend - Sistema de Gestion de Turnos Medicos - Entrega Backend 2 (Sedes, Especialidades, Coberturas, Agenda)",
   "type": "module",
   "main": "server.js",
   "scripts": {
