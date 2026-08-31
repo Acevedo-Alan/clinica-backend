@@ -7,6 +7,7 @@ import authRoutes from "./routes/authRoutes.js";
 import coberturaRoutes from "./routes/coberturaRoutes.js";
 import sedeRoutes from "./routes/sedeRoutes.js";
 import especialidadRoutes from "./routes/especialidadRoutes.js";
+import agendaRoutes from "./routes/agendaRoutes.js";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use("/auth", authRoutes);
 app.use("/coberturas", coberturaRoutes);
 app.use("/sedes", sedeRoutes);
 app.use("/especialidades", especialidadRoutes);
+app.use("/agenda", agendaRoutes);
 
 // 404 - también respeta el formato uniforme
 app.use((req, res) => {

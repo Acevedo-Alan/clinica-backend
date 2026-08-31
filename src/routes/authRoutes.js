@@ -11,7 +11,7 @@ router.post("/login", login);
 // Protegida solo por verificarToken (cualquier rol autenticado)
 router.get("/perfil", verificarToken, perfil);
 
-// Protegida por verificarToken + verificarRol (solo admin u operador)
-router.get("/usuarios", verificarToken, verificarRol("admin", "operador"), listarUsuarios);
+// Protegida por verificarToken + verificarRol (solo administrador u operador)
+router.get("/usuarios", verificarToken, verificarRol("administrador", "operador"), listarUsuarios);
 
 export default router;

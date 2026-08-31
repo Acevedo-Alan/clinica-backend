@@ -19,28 +19,28 @@ const router = Router();
 router.post(
   "/",
   verificarToken,
-  verificarRol("admin"),
+  verificarRol("administrador"),
   crearEspecialidad
 );
 
 router.get(
   "/",
   verificarToken,
-  verificarRol("admin"),
+  verificarRol("administrador"),
   listarEspecialidades
 );
 
 router.put(
   "/:id",
   verificarToken,
-  verificarRol("admin"),
+  verificarRol("administrador"),
   modificarEspecialidad
 );
 
 router.delete(
   "/:id",
   verificarToken,
-  verificarRol("admin"),
+  verificarRol("administrador"),
   eliminarEspecialidad
 );
 
