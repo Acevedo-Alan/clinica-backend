@@ -8,6 +8,9 @@ import coberturaRoutes from "./routes/coberturaRoutes.js";
 import sedeRoutes from "./routes/sedeRoutes.js";
 import especialidadRoutes from "./routes/especialidadRoutes.js";
 import agendaRoutes from "./routes/agendaRoutes.js";
+import turnoRoutes from "./routes/turnoRoutes.js";
+import historialRoutes from "./routes/historialRoutes.js";
+import notificacionRoutes from "./routes/notificacionRoutes.js";
 
 const app = express();
 
@@ -30,6 +33,9 @@ app.use("/coberturas", coberturaRoutes);
 app.use("/sedes", sedeRoutes);
 app.use("/especialidades", especialidadRoutes);
 app.use("/agenda", agendaRoutes);
+app.use("/turnos", turnoRoutes);
+app.use("/historial", historialRoutes);
+app.use("/notificaciones", notificacionRoutes);
 
 // 404 - también respeta el formato uniforme
 app.use((req, res) => {

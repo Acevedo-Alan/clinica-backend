@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Clinica - Backend Semana 1 y 2",
-    "description": "Setup, conexion a la base, autenticacion (Semana 1) y CRUDs de sedes, especialidades, coberturas y agenda medica (Semana 2)",
+    "name": "Clinica - Backend Semana 1, 2 y 3",
+    "description": "Setup, conexion a la base, autenticacion por DNI (Semana 1), CRUDs de sedes, especialidades, coberturas y agenda medica (Semana 2), y turnos, historial clinico y notificaciones (Semana 3)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -14,7 +14,14 @@
     { "key": "sede_id", "value": "" },
     { "key": "especialidad_id", "value": "" },
     { "key": "cobertura_id", "value": "" },
-    { "key": "agenda_id", "value": "" }
+    { "key": "agenda_id", "value": "" },
+    { "key": "paciente_otro_id", "value": "" },
+    { "key": "turno_agenda_id", "value": "" },
+    { "key": "turno_id_atender", "value": "" },
+    { "key": "turno_id_cancelar", "value": "" },
+    { "key": "turno_id_otro_paciente", "value": "" },
+    { "key": "historial_id", "value": "" },
+    { "key": "notificacion_id_cancelacion", "value": "" }
   ],
   "item": [
     {
@@ -42,6 +49,10 @@
             "exec": [
               "if (pm.response.code === 201) {",
               "  console.log('Usuario registrado correctamente');",
+              "  const data = pm.response.json();",
+              "  if (data && data.datos && data.datos.id) {",
+              "    pm.collectionVariables.set('paciente_otro_id', data.datos.id);",
+              "  }",
               "}"
             ]
           }
@@ -78,7 +89,7 @@
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"email\": \"juan@test.com\",\n  \"password\": \"123456\"\n}"
+          "raw": "{\n  \"dni\": \"30111222\",\n  \"password\": \"123456\"\n}"
         },
         "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
       }
@@ -131,7 +142,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"mgomez@clinica.com\",\n  \"password\": \"123456\"\n}"
+              "raw": "{\n  \"dni\": \"18222333\",\n  \"password\": \"123456\"\n}"
             },
             "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
           }
@@ -157,7 +168,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"alopez@clinica.com\",\n  \"password\": \"123456\"\n}"
+              "raw": "{\n  \"dni\": \"20111222\",\n  \"password\": \"123456\"\n}"
             },
             "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
           }
@@ -183,7 +194,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"jperez@gmail.com\",\n  \"password\": \"123456\"\n}"
+              "raw": "{\n  \"dni\": \"15200548\",\n  \"password\": \"123456\"\n}"
             },
             "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
           }
@@ -209,7 +220,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"asdas@gaasds.com\",\n  \"password\": \"123456\"\n}"
+              "raw": "{\n  \"dni\": \"36000960\",\n  \"password\": \"123456\"\n}"
             },
             "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
           }
@@ -685,6 +696,461 @@
             "method": "DELETE",
             "header": [{ "key": "Authorization", "value": "Bearer {{token_operador}}" }],
             "url": { "raw": "{{base_url}}/agenda/{{agenda_id}}", "host": ["{{base_url}}"], "path": ["agenda", "{{agenda_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Semana 3 - Turnos, Historial y Notificaciones",
+      "item": [
+        {
+          "name": "Crear Agenda para pruebas de Turnos (Operador)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.datos && data.datos.id) {",
+                  "  pm.collectionVariables.set('turno_agenda_id', data.datos.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_operador}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"12:00\",\n  \"fecha\": \"2026-10-01\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+            },
+            "url": { "raw": "{{base_url}}/agenda", "host": ["{{base_url}}"], "path": ["agenda"] }
+          }
+        },
+        {
+          "name": "CASO: Turno rechazado por horario no disponible (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"20:00\",\n  \"nota\": \"Fuera de horario\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] },
+            "description": "La agenda de prueba va de 09:00 a 12:00; pedir las 20:00 debe responder 400, no 500."
+          }
+        },
+        {
+          "name": "Crear Turno (Paciente, horario valido - Turno A)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.datos && data.datos.id) {",
+                  "  pm.collectionVariables.set('turno_id_atender', data.datos.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"09:30\",\n  \"nota\": \"Consulta de rutina\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] },
+            "description": "Turno A: se usa mas adelante para el caso de atencion + historial clinico."
+          }
+        },
+        {
+          "name": "Crear Turno superpuesto en el mismo horario (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_operador}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"09:30\",\n  \"nota\": \"Otro paciente, mismo horario\",\n  \"id_paciente\": 2\n}"
+            },
+            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] },
+            "description": "El slot 09:30 de esa agenda ya tiene un turno confirmado (Turno A), debe responder 409."
+          }
+        },
+        {
+          "name": "Crear Turno sin token (401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"10:00\",\n  \"nota\": \"Sin token\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] }
+          }
+        },
+        {
+          "name": "Crear Turno con rol administrador (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"10:00\",\n  \"nota\": \"Rol invalido\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] }
+          }
+        },
+        {
+          "name": "Crear Turno (Paciente, horario valido - Turno B)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.datos && data.datos.id) {",
+                  "  pm.collectionVariables.set('turno_id_cancelar', data.datos.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"10:00\",\n  \"nota\": \"Turno para cancelar\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] },
+            "description": "Turno B: se usa mas adelante para el caso de cancelacion + notificacion."
+          }
+        },
+        {
+          "name": "Crear Turno para paciente registrado dinamicamente (Turno C, ajeno)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.datos && data.datos.id) {",
+                  "  pm.collectionVariables.set('turno_id_otro_paciente', data.datos.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"10:30\",\n  \"nota\": \"Turno de otro paciente\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] },
+            "description": "Usa {{token}}, el paciente registrado dinamicamente en 'Registro de Paciente' + 'Login' (DNI 30111222). Turno C queda en manos de OTRO paciente distinto de token_paciente, para poder probar el 403 de 'cancelar turno ajeno'."
+          }
+        },
+        {
+          "name": "Listar Mis Turnos (Paciente)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": { "raw": "{{base_url}}/turnos/mios", "host": ["{{base_url}}"], "path": ["turnos", "mios"] }
+          }
+        },
+        {
+          "name": "Listar Turnos del Medico por fecha",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "url": {
+              "raw": "{{base_url}}/turnos/medico?fecha=2026-10-01",
+              "host": ["{{base_url}}"],
+              "path": ["turnos", "medico"],
+              "query": [{ "key": "fecha", "value": "2026-10-01" }]
+            }
+          }
+        },
+        {
+          "name": "Listar Turnos de la Sede por fecha",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_operador}}" }],
+            "url": {
+              "raw": "{{base_url}}/turnos/sede?fecha=2026-10-01",
+              "host": ["{{base_url}}"],
+              "path": ["turnos", "sede"],
+              "query": [{ "key": "fecha", "value": "2026-10-01" }]
+            }
+          }
+        },
+        {
+          "name": "Cancelar Turno ajeno (Paciente) (403)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": {
+              "raw": "{{base_url}}/turnos/{{turno_id_otro_paciente}}/cancelar",
+              "host": ["{{base_url}}"],
+              "path": ["turnos", "{{turno_id_otro_paciente}}", "cancelar"]
+            },
+            "description": "El Turno C pertenece al paciente registrado dinamicamente, no a token_paciente."
+          }
+        },
+        {
+          "name": "CASO: Cancelar Turno propio (Paciente) -> genera notificacion",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": {
+              "raw": "{{base_url}}/turnos/{{turno_id_cancelar}}/cancelar",
+              "host": ["{{base_url}}"],
+              "path": ["turnos", "{{turno_id_cancelar}}", "cancelar"]
+            },
+            "description": "Cancela el Turno B. Verificar con la siguiente request (Listar Notificaciones) que se generó la notificación 'turno_cancelado'."
+          }
+        },
+        {
+          "name": "CASO: Listar Notificaciones (Paciente) - verificar notificacion de cancelacion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && Array.isArray(data.datos)) {",
+                  "  const notif = data.datos.find(n => n.tipo === 'turno_cancelado');",
+                  "  if (notif) {",
+                  "    pm.collectionVariables.set('notificacion_id_cancelacion', notif.id);",
+                  "    console.log('Notificacion de cancelacion encontrada, id=' + notif.id);",
+                  "  } else {",
+                  "    console.warn('No se encontró la notificación de cancelación esperada');",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": { "raw": "{{base_url}}/notificaciones", "host": ["{{base_url}}"], "path": ["notificaciones"] },
+            "description": "Debe aparecer, de primera (ORDER BY fecha DESC), una notificación tipo 'turno_cancelado' generada por la request anterior."
+          }
+        },
+        {
+          "name": "Cancelar Turno ya cancelado (409)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": {
+              "raw": "{{base_url}}/turnos/{{turno_id_cancelar}}/cancelar",
+              "host": ["{{base_url}}"],
+              "path": ["turnos", "{{turno_id_cancelar}}", "cancelar"]
+            },
+            "description": "El Turno B ya fue cancelado en la request anterior, no se permite doble cambio de estado."
+          }
+        },
+        {
+          "name": "Marcar Notificacion como leida (Paciente)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": {
+              "raw": "{{base_url}}/notificaciones/{{notificacion_id_cancelacion}}/leida",
+              "host": ["{{base_url}}"],
+              "path": ["notificaciones", "{{notificacion_id_cancelacion}}", "leida"]
+            }
+          }
+        },
+        {
+          "name": "Marcar Notificacion ajena como leida (403)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": { "raw": "{{base_url}}/notificaciones/2/leida", "host": ["{{base_url}}"], "path": ["notificaciones", "2", "leida"] },
+            "description": "La notificación 2 (seed) pertenece al usuario 3 (medico), no a token_paciente."
+          }
+        },
+        {
+          "name": "Marcar Notificacion inexistente (404)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": { "raw": "{{base_url}}/notificaciones/999999/leida", "host": ["{{base_url}}"], "path": ["notificaciones", "999999", "leida"] }
+          }
+        },
+        {
+          "name": "Atender Turno con rol operador (403)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_operador}}" }],
+            "url": {
+              "raw": "{{base_url}}/turnos/{{turno_id_atender}}/atender",
+              "host": ["{{base_url}}"],
+              "path": ["turnos", "{{turno_id_atender}}", "atender"]
+            }
+          }
+        },
+        {
+          "name": "CASO: Atender Turno (Medico, propia agenda)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "url": {
+              "raw": "{{base_url}}/turnos/{{turno_id_atender}}/atender",
+              "host": ["{{base_url}}"],
+              "path": ["turnos", "{{turno_id_atender}}", "atender"]
+            },
+            "description": "Atiende el Turno A. Genera notificación 'turno_atendido' y deja el turno listo para cargarle historial clínico."
+          }
+        },
+        {
+          "name": "Atender Turno ya atendido (409)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "url": {
+              "raw": "{{base_url}}/turnos/{{turno_id_atender}}/atender",
+              "host": ["{{base_url}}"],
+              "path": ["turnos", "{{turno_id_atender}}", "atender"]
+            }
+          }
+        },
+        {
+          "name": "Cargar Historial Clinico con rol paciente (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_turno\": {{turno_id_atender}},\n  \"diagnostico\": \"No debería poder cargar esto\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/historial", "host": ["{{base_url}}"], "path": ["historial"] }
+          }
+        },
+        {
+          "name": "Cargar Historial sobre turno no atendido (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_turno\": {{turno_id_cancelar}},\n  \"diagnostico\": \"No debería poder cargarse\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/historial", "host": ["{{base_url}}"], "path": ["historial"] },
+            "description": "El Turno B está 'cancelado', no 'atendido': debe responder 400."
+          }
+        },
+        {
+          "name": "CASO: Cargar Historial Clinico (Medico) sobre turno atendido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.datos && data.datos.id) {",
+                  "  pm.collectionVariables.set('historial_id', data.datos.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_turno\": {{turno_id_atender}},\n  \"diagnostico\": \"Esguince de tobillo grado I\",\n  \"tratamiento\": \"Reposo y antiinflamatorios\",\n  \"observaciones\": \"Control en 15 dias\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/historial", "host": ["{{base_url}}"], "path": ["historial"] },
+            "description": "Carga el historial del Turno A, ya atendido por el mismo médico."
+          }
+        },
+        {
+          "name": "CASO: Consultar Historial del Paciente (Paciente propio) - debe aparecer el registro cargado",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": {
+              "raw": "{{base_url}}/historial/paciente/2",
+              "host": ["{{base_url}}"],
+              "path": ["historial", "paciente", "2"]
+            },
+            "description": "token_paciente es el usuario 2 (Friggeri Franco). Debe listar el registro creado en la request anterior."
+          }
+        },
+        {
+          "name": "Consultar Historial de otro paciente (Paciente) (403)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": {
+              "raw": "{{base_url}}/historial/paciente/{{paciente_otro_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["historial", "paciente", "{{paciente_otro_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Consultar Historial (Medico) - solo sus propios registros",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "url": {
+              "raw": "{{base_url}}/historial/paciente/2",
+              "host": ["{{base_url}}"],
+              "path": ["historial", "paciente", "2"]
+            }
+          }
+        },
+        {
+          "name": "Consultar Historial con rol operador (403)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_operador}}" }],
+            "url": {
+              "raw": "{{base_url}}/historial/paciente/2",
+              "host": ["{{base_url}}"],
+              "path": ["historial", "paciente", "2"]
+            }
           }
         }
       ]

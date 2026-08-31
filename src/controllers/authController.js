@@ -64,13 +64,13 @@ export async function registro(req, res) {
 // POST /auth/login
 export async function login(req, res) {
   try {
-    const { email, password } = req.body;
+    const { dni, password } = req.body;
 
-    if (!email || !password) {
-      return respuestaError(res, 400, "Debe enviar email y password");
+    if (!dni || !password) {
+      return respuestaError(res, 400, "Debe enviar dni y password");
     }
 
-    const [usuarios] = await pool.query("SELECT * FROM usuario WHERE email = ?", [email]);
+    const [usuarios] = await pool.query("SELECT * FROM usuario WHERE dni = ?", [dni]);
 
     if (usuarios.length === 0) {
       return respuestaError(res, 401, "Credenciales inválidas");
