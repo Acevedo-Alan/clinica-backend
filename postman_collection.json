@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Clinica - Backend Semana 1, 2 y 3",
-    "description": "Setup, conexion a la base, autenticacion por DNI (Semana 1), CRUDs de sedes, especialidades, coberturas y agenda medica (Semana 2), y turnos, historial clinico y notificaciones (Semana 3)",
+    "name": "Clinica - Backend Semana 1, 2, 3 y 4",
+    "description": "Setup, conexion a la base, autenticacion por DNI (Semana 1), CRUDs de sedes, especialidades, coberturas y agenda medica (Semana 2), turnos, historial clinico y notificaciones (Semana 3), y auditoria + reportes/estadisticas (Semana 4). Todos los endpoints responden con la misma estructura: { codigo, estado, datos }.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -1151,6 +1151,222 @@
               "host": ["{{base_url}}"],
               "path": ["historial", "paciente", "2"]
             }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Semana 4 - Auditoria (solo administrador)",
+      "item": [
+        {
+          "name": "Listar Auditoria (Admin) - todos los registros",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": { "raw": "{{base_url}}/auditoria", "host": ["{{base_url}}"], "path": ["auditoria"] },
+            "description": "Devuelve todos los log_auditoria ordenados por fecha DESC. Cada registro tiene: id, id_usuario, usuario_nombre, usuario_apellido, accion (ALTA/BAJA/MODIFICACION), entidad, id_entidad, detalle, fecha."
+          }
+        },
+        {
+          "name": "Listar Auditoria filtrada por usuario (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": {
+              "raw": "{{base_url}}/auditoria?id_usuario=4",
+              "host": ["{{base_url}}"],
+              "path": ["auditoria"],
+              "query": [{ "key": "id_usuario", "value": "4" }]
+            },
+            "description": "Filtro por query id_usuario. Solo registros realizados por ese usuario."
+          }
+        },
+        {
+          "name": "Listar Auditoria filtrada por entidad (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": {
+              "raw": "{{base_url}}/auditoria?entidad=sede",
+              "host": ["{{base_url}}"],
+              "path": ["auditoria"],
+              "query": [{ "key": "entidad", "value": "sede" }]
+            },
+            "description": "Filtro por query entidad (ej: sede, cobertura, especialidad, usuario)."
+          }
+        },
+        {
+          "name": "Listar Auditoria por rango de fechas (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": {
+              "raw": "{{base_url}}/auditoria?fecha_desde=2025-10-01&fecha_hasta=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["auditoria"],
+              "query": [
+                { "key": "fecha_desde", "value": "2025-10-01" },
+                { "key": "fecha_hasta", "value": "2025-12-31" }
+              ]
+            },
+            "description": "Filtro por rango de fechas. Formato YYYY-MM-DD. Los filtros se combinan con AND: se pueden usar id_usuario, entidad, fecha_desde y/o fecha_hasta juntos."
+          }
+        },
+        {
+          "name": "Listar Auditoria con rol operador (403)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_operador}}" }],
+            "url": { "raw": "{{base_url}}/auditoria", "host": ["{{base_url}}"], "path": ["auditoria"] },
+            "description": "Solo el rol administrador puede consultar la auditoría: un operador debe recibir 403."
+          }
+        },
+        {
+          "name": "Listar Auditoria sin token (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{base_url}}/auditoria", "host": ["{{base_url}}"], "path": ["auditoria"] },
+            "description": "Sin token válido debe responder 401."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Semana 4 - Reportes y Estadisticas (solo administrador)",
+      "item": [
+        {
+          "name": "Reporte: Turnos por Especialidad (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": {
+              "raw": "{{base_url}}/reportes/turnos-por-especialidad",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "turnos-por-especialidad"]
+            },
+            "description": "Cantidad de turnos agrupados por especialidad. Filtros opcionales por query: fecha_desde y fecha_hasta (YYYY-MM-DD)."
+          }
+        },
+        {
+          "name": "Reporte: Turnos por Especialidad con rango de fechas (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": {
+              "raw": "{{base_url}}/reportes/turnos-por-especialidad?fecha_desde=2025-10-01&fecha_hasta=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "turnos-por-especialidad"],
+              "query": [
+                { "key": "fecha_desde", "value": "2025-10-01" },
+                { "key": "fecha_hasta", "value": "2025-12-31" }
+              ]
+            },
+            "description": "Mismo reporte filtrado por rango de fechas. El filtro se aplica sobre turno.fecha."
+          }
+        },
+        {
+          "name": "Reporte: Turnos por Sede (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": {
+              "raw": "{{base_url}}/reportes/turnos-por-sede",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "turnos-por-sede"]
+            },
+            "description": "Cantidad de turnos agrupados por sede. Filtros opcionales por query: fecha_desde y fecha_hasta (YYYY-MM-DD)."
+          }
+        },
+        {
+          "name": "Reporte: Turnos por Sede con rango de fechas (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": {
+              "raw": "{{base_url}}/reportes/turnos-por-sede?fecha_desde=2025-10-01&fecha_hasta=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "turnos-por-sede"],
+              "query": [
+                { "key": "fecha_desde", "value": "2025-10-01" },
+                { "key": "fecha_hasta", "value": "2025-12-31" }
+              ]
+            },
+            "description": "Mismo reporte filtrado por rango de fechas."
+          }
+        },
+        {
+          "name": "Reporte: Ranking de Medicos por turnos atendidos (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": {
+              "raw": "{{base_url}}/reportes/ranking-medicos",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "ranking-medicos"]
+            },
+            "description": "Ranking de todos los médicos por cantidad de turnos EN ESTADO 'atendido', ordenado de mayor a menor. Devuelve todos, no solo el primero. Filtros opcionales por query: fecha_desde, fecha_hasta y limite (para acotar el top N)."
+          }
+        },
+        {
+          "name": "Reporte: Ranking de Medicos top 3 con rango de fechas (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": {
+              "raw": "{{base_url}}/reportes/ranking-medicos?limite=3&fecha_desde=2025-10-01&fecha_hasta=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "ranking-medicos"],
+              "query": [
+                { "key": "limite", "value": "3" },
+                { "key": "fecha_desde", "value": "2025-10-01" },
+                { "key": "fecha_hasta", "value": "2025-12-31" }
+              ]
+            },
+            "description": "Top 3 de médicos por turnos atendidos dentro del rango de fechas indicado."
+          }
+        },
+        {
+          "name": "Reporte: Tasa de Cancelacion (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": {
+              "raw": "{{base_url}}/reportes/tasa-cancelacion",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "tasa-cancelacion"]
+            },
+            "description": "Devuelve total_turnos, turnos_cancelados y tasa_cancelacion_porcentaje (cancelados sobre el total). Filtros opcionales por query: fecha_desde y fecha_hasta (YYYY-MM-DD)."
+          }
+        },
+        {
+          "name": "Reporte: Tasa de Cancelacion con rango de fechas (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": {
+              "raw": "{{base_url}}/reportes/tasa-cancelacion?fecha_desde=2025-10-01&fecha_hasta=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "tasa-cancelacion"],
+              "query": [
+                { "key": "fecha_desde", "value": "2025-10-01" },
+                { "key": "fecha_hasta", "value": "2025-12-31" }
+              ]
+            },
+            "description": "Tasa de cancelación dentro del rango de fechas indicado."
+          }
+        },
+        {
+          "name": "Reporte con rol medico (403)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "url": {
+              "raw": "{{base_url}}/reportes/turnos-por-especialidad",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "turnos-por-especialidad"]
+            },
+            "description": "Solo el rol administrador puede acceder a los reportes: un médico debe recibir 403."
           }
         }
       ]

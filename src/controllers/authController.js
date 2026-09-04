@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import pool from "../database/db.js";
 import { respuestaOk, respuestaError } from "../utils/respuesta.js";
+import { registrarAuditoria } from "../utils/auditoria.js";
 
 const SALT_ROUNDS = 10;
 
@@ -46,6 +47,14 @@ export async function registro(req, res) {
       `INSERT INTO usuario (apellido, nombre, fecha_nacimiento, password, rol, email, telefono, dni, id_sede, id_cobertura)
        VALUES (?, ?, ?, ?, 'paciente', ?, ?, ?, NULL, ?)`,
       [apellido, nombre, fecha_nacimiento, passwordHasheada, email, telefono || "", dni, id_cobertura]
+    );
+
+    await registrarAuditoria(
+      resultado.insertId,
+      "ALTA",
+      "usuario",
+      resultado.insertId,
+      `Alta de paciente ${apellido} ${nombre}`
     );
 
     return respuestaOk(res, 201, {

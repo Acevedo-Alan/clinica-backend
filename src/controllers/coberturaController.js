@@ -1,5 +1,6 @@
 import pool from "../database/db.js";
 import { respuestaOk, respuestaError } from "../utils/respuesta.js";
+import { registrarAuditoria } from "../utils/auditoria.js";
 
 // GET /coberturas - lista las coberturas disponibles para elegir al registrarse
 export async function listarCoberturas(req, res) {
@@ -24,6 +25,14 @@ export async function crearCobertura(req, res) {
     const [resultado] = await pool.query(
       "INSERT INTO cobertura (nombre) VALUES (?)",
       [nombre]
+    );
+
+    await registrarAuditoria(
+      req.usuario.id,
+      "ALTA",
+      "cobertura",
+      resultado.insertId,
+      `Alta de cobertura ${nombre}`
     );
 
     return respuestaOk(res, 201, {
@@ -59,6 +68,14 @@ export async function modificarCobertura(req, res) {
       nombre,
       id,
     ]);
+
+    await registrarAuditoria(
+      req.usuario.id,
+      "MODIFICACION",
+      "cobertura",
+      Number(id),
+      `Modificación de cobertura a ${nombre}`
+    );
 
     return respuestaOk(res, 200, {
       id: Number(id),
@@ -98,6 +115,14 @@ export async function eliminarCobertura(req, res) {
     }
 
     await pool.query("DELETE FROM cobertura WHERE id = ?", [id]);
+
+    await registrarAuditoria(
+      req.usuario.id,
+      "BAJA",
+      "cobertura",
+      Number(id),
+      `Baja de cobertura ${coberturas[0].nombre}`
+    );
 
     return respuestaOk(res, 200, {
       id: Number(id),

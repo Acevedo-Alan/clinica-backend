@@ -1,6 +1,7 @@
 import pool from "../database/db.js";
 
 import { respuestaOk, respuestaError } from "../utils/respuesta.js";
+import { registrarAuditoria } from "../utils/auditoria.js";
 
 // POST /especialidades
 export async function crearEspecialidad(req, res) {
@@ -18,6 +19,14 @@ export async function crearEspecialidad(req, res) {
     const [resultado] = await pool.query(
       "INSERT INTO especialidad (descripcion) VALUES (?)",
       [descripcion]
+    );
+
+    await registrarAuditoria(
+      req.usuario.id,
+      "ALTA",
+      "especialidad",
+      resultado.insertId,
+      `Alta de especialidad ${descripcion}`
     );
 
     return respuestaOk(res, 201, {
@@ -84,6 +93,14 @@ export async function modificarEspecialidad(req, res) {
       [descripcion, id]
     );
 
+    await registrarAuditoria(
+      req.usuario.id,
+      "MODIFICACION",
+      "especialidad",
+      Number(id),
+      `Modificación de especialidad a ${descripcion}`
+    );
+
     return respuestaOk(res, 200, {
       id: Number(id),
       descripcion,
@@ -136,6 +153,14 @@ export async function eliminarEspecialidad(req, res) {
     await pool.query(
       "DELETE FROM especialidad WHERE id = ?",
       [id]
+    );
+
+    await registrarAuditoria(
+      req.usuario.id,
+      "BAJA",
+      "especialidad",
+      Number(id),
+      `Baja de especialidad ${especialidades[0].descripcion}`
     );
 
     return respuestaOk(res, 200, {

@@ -1,6 +1,7 @@
 import pool from "../database/db.js";
 
 import { respuestaOk, respuestaError } from "../utils/respuesta.js";
+import { registrarAuditoria } from "../utils/auditoria.js";
 
 // POST /sedes - crea una nueva sede
 
@@ -19,6 +20,14 @@ export async function crearSede(req, res) {
     const [resultado] = await pool.query(
       "INSERT INTO sede (nombre, direccion, telefono) VALUES (?, ?, ?)",
       [nombre, direccion, telefono]
+    );
+
+    await registrarAuditoria(
+      req.usuario.id,
+      "ALTA",
+      "sede",
+      resultado.insertId,
+      `Alta de sede ${nombre}`
     );
 
     return respuestaOk(res, 201, {
@@ -77,6 +86,14 @@ export async function modificarSede(req, res) {
       [nombre, direccion, telefono, id]
     );
 
+    await registrarAuditoria(
+      req.usuario.id,
+      "MODIFICACION",
+      "sede",
+      Number(id),
+      `Modificación de sede a ${nombre}`
+    );
+
     return respuestaOk(res, 200, {
       id: Number(id),
       nombre,
@@ -128,6 +145,14 @@ export async function eliminarSede(req, res) {
     }
 
     await pool.query("DELETE FROM sede WHERE id = ?", [id]);
+
+    await registrarAuditoria(
+      req.usuario.id,
+      "BAJA",
+      "sede",
+      Number(id),
+      `Baja de sede ${sedes[0].nombre}`
+    );
 
     return respuestaOk(res, 200, {
       id: Number(id),

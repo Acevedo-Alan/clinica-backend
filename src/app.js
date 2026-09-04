@@ -11,6 +11,8 @@ import agendaRoutes from "./routes/agendaRoutes.js";
 import turnoRoutes from "./routes/turnoRoutes.js";
 import historialRoutes from "./routes/historialRoutes.js";
 import notificacionRoutes from "./routes/notificacionRoutes.js";
+import auditoriaRoutes from "./routes/auditoriaRoutes.js";
+import reportesRoutes from "./routes/reportesRoutes.js";
 
 const app = express();
 
@@ -36,6 +38,8 @@ app.use("/agenda", agendaRoutes);
 app.use("/turnos", turnoRoutes);
 app.use("/historial", historialRoutes);
 app.use("/notificaciones", notificacionRoutes);
+app.use("/auditoria", auditoriaRoutes);
+app.use("/reportes", reportesRoutes);
 
 // 404 - también respeta el formato uniforme
 app.use((req, res) => {
