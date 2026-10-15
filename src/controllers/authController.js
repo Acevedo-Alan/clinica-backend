@@ -64,20 +64,27 @@ export async function registro(req, res) {
 // POST /auth/login
 export async function login(req, res) {
   try {
-    const { email, password } = req.body;
+    const { dni, password } = req.body;
 
-    if (!email || !password) {
-      return respuestaError(res, 400, "Debe enviar email y password");
+    if (!dni || !password) {
+      return respuestaError(res, 400, "Debe enviar DNI y contraseña");
     }
 
-    const [usuarios] = await pool.query("SELECT * FROM usuario WHERE email = ?", [email]);
-
+    const [usuarios] = await pool.query(
+      "SELECT id, dni, rol, password FROM usuario WHERE dni = ?",
+      [dni.trim()]
+    );
+    
     if (usuarios.length === 0) {
       return respuestaError(res, 401, "Credenciales inválidas");
     }
-
+    
     const usuario = usuarios[0];
-    const passwordValida = await bcrypt.compare(password, usuario.password);
+
+    const passwordValida = await bcrypt.compare(
+      password,
+      usuario.password
+    );
 
     if (!passwordValida) {
       return respuestaError(res, 401, "Credenciales inválidas");
@@ -103,8 +110,10 @@ export async function login(req, res) {
         email: usuario.email,
       },
     });
+
   } catch (error) {
     console.error("Error en login:", error);
+
     return respuestaError(res, 500, "Error al iniciar sesión");
   }
 }
