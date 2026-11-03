@@ -11,12 +11,12 @@ import { verificarToken, verificarRol } from "../middlewares/auth.js";
 
 const router = Router();
 
-// Solo médico (su propia agenda) u operador (cualquier agenda). Paciente y
-// cualquier otro rol quedan afuera con 403 por verificarRol.
+// Alta/modificación/baja: solo médico (su propia agenda) u operador (cualquier agenda).
+// Lectura: también paciente, que la necesita para elegir un turno disponible.
 
 router.post("/", verificarToken, verificarRol("medico", "operador"), crearAgenda);
 
-router.get("/", verificarToken, verificarRol("medico", "operador"), listarAgenda);
+router.get("/", verificarToken, verificarRol("medico", "operador", "paciente"), listarAgenda);
 
 router.put("/:id", verificarToken, verificarRol("medico", "operador"), modificarAgenda);
 

@@ -1,6 +1,7 @@
 import pool from "../database/db.js";
 import { respuestaOk, respuestaError } from "../utils/respuesta.js";
 import { crearNotificacion } from "./notificacionController.js";
+import { registrarAuditoria } from "../utils/auditoria.js";
 
 // Formatea una fecha (Date o string) como dd/mm/yyyy para los mensajes de notificación
 function formatearFecha(fecha) {
@@ -8,6 +9,15 @@ function formatearFecha(fecha) {
   const dd = String(d.getDate()).padStart(2, "0");
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   return `${dd}/${mm}/${d.getFullYear()}`;
+}
+
+// La misma fecha (Date o string) como "YYYY-MM-DD", para comparar contra el día de hoy.
+function fechaISO(fecha) {
+  const d = fecha instanceof Date ? fecha : new Date(fecha);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 // POST /turnos
@@ -45,6 +55,18 @@ export async function crearTurno(req, res) {
       return respuestaError(res, 400, "La agenda indicada no existe");
     }
     const agenda = agendas[0];
+
+    const hoy = fechaISO(new Date());
+    const fechaAgenda = fechaISO(agenda.fecha);
+    if (fechaAgenda < hoy) {
+      return respuestaError(res, 400, "No se puede reservar un turno en una fecha pasada");
+    }
+    if (fechaAgenda === hoy) {
+      const horaActual = new Date().toTimeString().slice(0, 5);
+      if (hora < horaActual) {
+        return respuestaError(res, 400, "No se puede reservar un turno en un horario que ya pasó");
+      }
+    }
 
     if (!(hora >= agenda.hora_entrada && hora < agenda.hora_salida)) {
       return respuestaError(
@@ -85,6 +107,14 @@ export async function crearTurno(req, res) {
       id_paciente,
       "turno_confirmado",
       `Tu turno del ${formatearFecha(agenda.fecha)} a las ${hora} fue confirmado.`
+    );
+
+    await registrarAuditoria(
+      req.usuario.id,
+      "ALTA",
+      "turno",
+      resultado.insertId,
+      `Alta de turno para el paciente ${id_paciente} el ${formatearFecha(agenda.fecha)} a las ${hora}`
     );
 
     return respuestaOk(res, 201, {
@@ -148,6 +178,14 @@ export async function cancelarTurno(req, res) {
       `Tu turno del ${formatearFecha(turno.fecha)} a las ${turno.hora} fue cancelado.`
     );
 
+    await registrarAuditoria(
+      idUsuario,
+      "MODIFICACION",
+      "turno",
+      Number(id),
+      `Cancelación de turno del paciente ${turno.id_paciente} del ${formatearFecha(turno.fecha)} a las ${turno.hora}`
+    );
+
     return respuestaOk(res, 200, { id: Number(id), estado: "cancelado" });
   } catch (error) {
     console.error("Error al cancelar el turno:", error);
@@ -193,6 +231,14 @@ export async function atenderTurno(req, res) {
       turno.id_paciente,
       "turno_atendido",
       `Tu turno del ${formatearFecha(turno.fecha)} a las ${turno.hora} fue atendido.`
+    );
+
+    await registrarAuditoria(
+      idUsuario,
+      "MODIFICACION",
+      "turno",
+      Number(id),
+      `Atención de turno del paciente ${turno.id_paciente} del ${formatearFecha(turno.fecha)} a las ${turno.hora}`
     );
 
     return respuestaOk(res, 200, { id: Number(id), estado: "atendido" });

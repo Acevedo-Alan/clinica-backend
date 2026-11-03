@@ -1,5 +1,6 @@
 import pool from "../database/db.js";
 import { respuestaOk, respuestaError } from "../utils/respuesta.js";
+import { registrarAuditoria } from "../utils/auditoria.js";
 
 // POST /historial - solo el médico que atendió el turno, y solo si ya está 'atendido'
 export async function crearHistorial(req, res) {
@@ -44,6 +45,14 @@ export async function crearHistorial(req, res) {
       `INSERT INTO historial_clinico (id_turno, id_medico, id_paciente, diagnostico, tratamiento, observaciones)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [id_turno, idMedico, turno.id_paciente, diagnostico, tratamiento || null, observaciones || null]
+    );
+
+    await registrarAuditoria(
+      idMedico,
+      "ALTA",
+      "historial_clinico",
+      resultado.insertId,
+      `Alta de historial clínico del paciente ${turno.id_paciente} (turno ${id_turno})`
     );
 
     return respuestaOk(res, 201, {
