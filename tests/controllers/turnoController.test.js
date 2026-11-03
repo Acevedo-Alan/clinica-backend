@@ -247,6 +247,49 @@ test("reprogramarTurno mueve el turno a la nueva agenda/hora", async (t) => {
   assert.equal(res.body.datos.hora, "09:00");
 });
 
+test("reprogramarTurno permite a un medico reprogramar su turno en una sede distinta a la suya", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([
+      [/FROM turno t/, [[{ id: 1, estado: "confirmado", id_medico: 3, id_sede: 2 }]]],
+      [/FROM agenda WHERE id = \?/, [[AGENDA_FUTURA]]],
+      [/FROM turno\s+WHERE id_agenda = \? AND fecha = \? AND hora = \? AND estado = 'confirmado' AND id <> \?/, [[]]],
+      [/UPDATE turno SET id_agenda/, [{}]],
+      [/INSERT INTO notificacion/, [{}]],
+      [/INSERT INTO log_auditoria/, [{}]],
+    ])
+  );
+
+  // El medico tiene id_sede=1 en su propio token, pero el turno es de la sede 2
+  // (una de las otras sedes donde atiende): debe poder reprogramarlo igual.
+  const req = {
+    params: { id: 1 },
+    body: { id_agenda: 1, hora: "09:00" },
+    usuario: { rol: "medico", id: 3, id_sede: 1 },
+  };
+  const res = mockRes();
+
+  await reprogramarTurno(req, res);
+
+  assert.equal(res.statusCode, 200);
+});
+
+test("reprogramarTurno rechaza a un medico reprogramando el turno de otro medico", async (t) => {
+  t.mock.method(pool, "query", mockQuery([[/FROM turno t/, [[{ id: 1, estado: "confirmado", id_medico: 999, id_sede: 1 }]]]]));
+
+  const req = {
+    params: { id: 1 },
+    body: { id_agenda: 1, hora: "09:00" },
+    usuario: { rol: "medico", id: 3, id_sede: 1 },
+  };
+  const res = mockRes();
+
+  await reprogramarTurno(req, res);
+
+  assert.equal(res.statusCode, 403);
+});
+
 test("cancelarTurno responde 404 si el turno no existe", async (t) => {
   t.mock.method(pool, "query", mockQuery([[/FROM turno t/, [[]]]]));
 
@@ -281,6 +324,42 @@ test("cancelarTurno rechaza a un operador de otra sede", async (t) => {
   );
 
   const req = { params: { id: 1 }, usuario: { rol: "operador", id: 50, id_sede: 2 } };
+  const res = mockRes();
+
+  await cancelarTurno(req, res);
+
+  assert.equal(res.statusCode, 403);
+});
+
+test("cancelarTurno permite a un medico cancelar su turno en una sede distinta a la suya", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([
+      [/FROM turno t/, [[{ id: 1, estado: "confirmado", id_paciente: 7, id_medico: 3, id_sede: 2, fecha: "2999-01-01", hora: "09:00" }]]],
+      [/UPDATE turno SET estado = 'cancelado'/, [{}]],
+      [/INSERT INTO notificacion/, [{}]],
+      [/INSERT INTO log_auditoria/, [{}]],
+    ])
+  );
+
+  // El medico tiene id_sede=1 en su propio token, pero el turno es de la sede 2.
+  const req = { params: { id: 1 }, usuario: { rol: "medico", id: 3, id_sede: 1 } };
+  const res = mockRes();
+
+  await cancelarTurno(req, res);
+
+  assert.equal(res.statusCode, 200);
+});
+
+test("cancelarTurno rechaza a un medico cancelando el turno de otro medico", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([[/FROM turno t/, [[{ id: 1, estado: "confirmado", id_paciente: 7, id_medico: 999, id_sede: 1 }]]]])
+  );
+
+  const req = { params: { id: 1 }, usuario: { rol: "medico", id: 3, id_sede: 1 } };
   const res = mockRes();
 
   await cancelarTurno(req, res);

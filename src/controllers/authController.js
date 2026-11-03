@@ -132,43 +132,81 @@ export async function perfil(req, res) {
     if (usuarios.length === 0) {
       return respuestaError(res, 404, "Usuario no encontrado");
     }
+    const usuario = usuarios[0];
 
-    return respuestaOk(res, 200, usuarios[0]);
+    if (usuario.rol === "medico") {
+      const [especialidades] = await pool.query(
+        "SELECT id_especialidad FROM medico_especialidad WHERE id_medico = ?",
+        [id]
+      );
+      usuario.especialidades = especialidades.map((e) => e.id_especialidad);
+    }
+
+    return respuestaOk(res, 200, usuario);
   } catch (error) {
     console.error("Error en perfil:", error);
     return respuestaError(res, 500, "Error al obtener el perfil");
   }
 }
 
-// PUT /auth/perfil (protegido) - el usuario edita sus propios datos de contacto.
-// Rol, DNI, sede y cobertura no se tocan por esta vía (quedan a cargo del administrador).
+// PUT /auth/perfil (protegido) - el usuario edita sus propios datos.
+// El paciente solo puede tocar email, teléfono y cobertura (nombre, apellido,
+// fecha_nacimiento y dni quedan a cargo del administrador). El resto de los
+// roles no tiene cobertura y mantiene el edit de contacto que ya tenían.
 export async function actualizarPerfil(req, res) {
   try {
-    const { id } = req.usuario;
-    const { nombre, apellido, email, telefono, fecha_nacimiento } = req.body;
+    const { id, rol } = req.usuario;
 
-    if (!nombre || !apellido || !email || !fecha_nacimiento) {
-      return respuestaError(
-        res,
-        400,
-        "Faltan datos obligatorios: nombre, apellido, email, fecha_nacimiento"
+    if (rol === "paciente") {
+      const { email, telefono, id_cobertura } = req.body;
+
+      if (!email || !id_cobertura) {
+        return respuestaError(res, 400, "Faltan datos obligatorios: email, id_cobertura");
+      }
+
+      const [emailDuplicado] = await pool.query(
+        "SELECT id FROM usuario WHERE email = ? AND id <> ?",
+        [email, id]
+      );
+      if (emailDuplicado.length > 0) {
+        return respuestaError(res, 409, "Ya existe otro usuario registrado con ese email");
+      }
+
+      const [coberturas] = await pool.query("SELECT id FROM cobertura WHERE id = ?", [id_cobertura]);
+      if (coberturas.length === 0) {
+        return respuestaError(res, 400, "La cobertura indicada no existe");
+      }
+
+      await pool.query(
+        "UPDATE usuario SET email = ?, telefono = ?, id_cobertura = ? WHERE id = ?",
+        [email, telefono || "", id_cobertura, id]
+      );
+    } else {
+      const { nombre, apellido, email, telefono, fecha_nacimiento } = req.body;
+
+      if (!nombre || !apellido || !email || !fecha_nacimiento) {
+        return respuestaError(
+          res,
+          400,
+          "Faltan datos obligatorios: nombre, apellido, email, fecha_nacimiento"
+        );
+      }
+
+      const [emailDuplicado] = await pool.query(
+        "SELECT id FROM usuario WHERE email = ? AND id <> ?",
+        [email, id]
+      );
+      if (emailDuplicado.length > 0) {
+        return respuestaError(res, 409, "Ya existe otro usuario registrado con ese email");
+      }
+
+      await pool.query(
+        `UPDATE usuario
+         SET nombre = ?, apellido = ?, email = ?, telefono = ?, fecha_nacimiento = ?
+         WHERE id = ?`,
+        [nombre, apellido, email, telefono || "", fecha_nacimiento, id]
       );
     }
-
-    const [emailDuplicado] = await pool.query(
-      "SELECT id FROM usuario WHERE email = ? AND id <> ?",
-      [email, id]
-    );
-    if (emailDuplicado.length > 0) {
-      return respuestaError(res, 409, "Ya existe otro usuario registrado con ese email");
-    }
-
-    await pool.query(
-      `UPDATE usuario
-       SET nombre = ?, apellido = ?, email = ?, telefono = ?, fecha_nacimiento = ?
-       WHERE id = ?`,
-      [nombre, apellido, email, telefono || "", fecha_nacimiento, id]
-    );
 
     await registrarAuditoria(id, "MODIFICACION", "usuario", id, "Modificación de perfil propio");
 
@@ -188,10 +226,18 @@ export async function actualizarPerfil(req, res) {
 export async function cambiarPassword(req, res) {
   try {
     const { id } = req.usuario;
-    const { passwordActual, passwordNueva } = req.body;
+    const { passwordActual, passwordNueva, confirmarPassword } = req.body;
 
-    if (!passwordActual || !passwordNueva) {
-      return respuestaError(res, 400, "Faltan datos obligatorios: passwordActual, passwordNueva");
+    if (!passwordActual || !passwordNueva || !confirmarPassword) {
+      return respuestaError(
+        res,
+        400,
+        "Faltan datos obligatorios: passwordActual, passwordNueva, confirmarPassword"
+      );
+    }
+
+    if (passwordNueva !== confirmarPassword) {
+      return respuestaError(res, 400, "La nueva contraseña y su confirmación no coinciden");
     }
 
     if (passwordNueva.length < 8) {

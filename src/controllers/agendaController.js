@@ -81,10 +81,14 @@ export async function crearAgenda(req, res) {
       return respuestaError(res, 400, "No se puede crear un registro de agenda con fecha pasada");
     }
 
-    const { rol, id } = req.usuario;
+    const { rol, id, id_sede: sedeToken } = req.usuario;
 
     if (rol === "medico" && Number(id_medico) !== Number(id)) {
       return respuestaError(res, 403, "Un médico solo puede crear su propia agenda");
+    }
+
+    if (rol === "operador" && Number(id_sede) !== Number(sedeToken)) {
+      return respuestaError(res, 403, "Un operador solo puede crear agenda en su propia sede");
     }
 
     const errorReferencia = await validarReferencias({ id_medico, id_especialidad, id_sede });
@@ -206,7 +210,7 @@ export async function modificarAgenda(req, res) {
     }
 
     const agendaExistente = existentes[0];
-    const { rol, id: idUsuario } = req.usuario;
+    const { rol, id: idUsuario, id_sede: sedeToken } = req.usuario;
 
     if (rol === "medico") {
       if (Number(agendaExistente.id_medico) !== Number(idUsuario)) {
@@ -217,9 +221,32 @@ export async function modificarAgenda(req, res) {
       }
     }
 
+    if (rol === "operador") {
+      if (Number(agendaExistente.id_sede) !== Number(sedeToken)) {
+        return respuestaError(res, 403, "Un operador solo puede modificar agenda de su propia sede");
+      }
+      if (Number(id_sede) !== Number(sedeToken)) {
+        return respuestaError(res, 403, "Un operador solo puede asignar agenda a su propia sede");
+      }
+    }
+
     const errorReferencia = await validarReferencias({ id_medico, id_especialidad, id_sede });
     if (errorReferencia) {
       return respuestaError(res, 400, errorReferencia);
+    }
+
+    const [turnosFueraDeRango] = await pool.query(
+      `SELECT id FROM turno
+       WHERE id_agenda = ? AND estado = 'confirmado' AND (hora < ? OR hora >= ?)
+       LIMIT 1`,
+      [id, hora_entrada, hora_salida]
+    );
+    if (turnosFueraDeRango.length > 0) {
+      return respuestaError(
+        res,
+        409,
+        "No se puede modificar el horario dejando turnos confirmados fuera del nuevo rango"
+      );
     }
 
     if (await existeSuperposicion({ id_medico, fecha, hora_entrada, hora_salida, idExcluir: id })) {
@@ -271,10 +298,14 @@ export async function eliminarAgenda(req, res) {
     }
 
     const agendaExistente = existentes[0];
-    const { rol, id: idUsuario } = req.usuario;
+    const { rol, id: idUsuario, id_sede: sedeToken } = req.usuario;
 
     if (rol === "medico" && Number(agendaExistente.id_medico) !== Number(idUsuario)) {
       return respuestaError(res, 403, "Un médico solo puede eliminar su propia agenda");
+    }
+
+    if (rol === "operador" && Number(agendaExistente.id_sede) !== Number(sedeToken)) {
+      return respuestaError(res, 403, "Un operador solo puede eliminar agenda de su propia sede");
     }
 
     const [turnosAsociados] = await pool.query(

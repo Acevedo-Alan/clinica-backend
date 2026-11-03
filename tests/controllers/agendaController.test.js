@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import pool from "../../src/database/db.js";
-import { crearAgenda } from "../../src/controllers/agendaController.js";
+import { crearAgenda, modificarAgenda, eliminarAgenda } from "../../src/controllers/agendaController.js";
 import { mockRes, mockQuery } from "../helpers/http.js";
 
 const AGENDA_VALIDA = {
@@ -78,13 +78,23 @@ test("crearAgenda rechaza superposicion con otro bloque del mismo medico", async
     mockQuery([...REFERENCIAS_OK, [/FROM agenda WHERE id_medico = \?/, [[{ id: 99 }]]]])
   );
 
-  const req = { body: AGENDA_VALIDA, usuario: { rol: "operador", id: 50 } };
+  const req = { body: AGENDA_VALIDA, usuario: { rol: "operador", id: 50, id_sede: 1 } };
   const res = mockRes();
 
   await crearAgenda(req, res);
 
   assert.equal(res.statusCode, 409);
   assert.match(res.body.estado, /superpone/);
+});
+
+test("crearAgenda rechaza a un operador creando agenda en otra sede", async (t) => {
+  const req = { body: AGENDA_VALIDA, usuario: { rol: "operador", id: 50, id_sede: 2 } };
+  const res = mockRes();
+
+  await crearAgenda(req, res);
+
+  assert.equal(res.statusCode, 403);
+  assert.match(res.body.estado, /propia sede/);
 });
 
 test("crearAgenda crea el registro cuando todo es valido", async (t) => {
@@ -99,11 +109,113 @@ test("crearAgenda crea el registro cuando todo es valido", async (t) => {
     ])
   );
 
-  const req = { body: AGENDA_VALIDA, usuario: { rol: "operador", id: 50 } };
+  const req = { body: AGENDA_VALIDA, usuario: { rol: "operador", id: 50, id_sede: 1 } };
   const res = mockRes();
 
   await crearAgenda(req, res);
 
   assert.equal(res.statusCode, 201);
   assert.equal(res.body.datos.id, 10);
+});
+
+test("modificarAgenda rechaza a un operador modificando agenda de otra sede", async (t) => {
+  t.mock.method(pool, "query", mockQuery([[/FROM agenda WHERE id = \?/, [[{ id: 5, id_medico: 1, id_sede: 2 }]]]]));
+
+  const req = { params: { id: 5 }, body: AGENDA_VALIDA, usuario: { rol: "operador", id: 50, id_sede: 1 } };
+  const res = mockRes();
+
+  await modificarAgenda(req, res);
+
+  assert.equal(res.statusCode, 403);
+  assert.match(res.body.estado, /propia sede/);
+});
+
+test("modificarAgenda rechaza a un operador reasignando la agenda a otra sede", async (t) => {
+  t.mock.method(pool, "query", mockQuery([[/FROM agenda WHERE id = \?/, [[{ id: 5, id_medico: 1, id_sede: 1 }]]]]));
+
+  const req = {
+    params: { id: 5 },
+    body: { ...AGENDA_VALIDA, id_sede: 2 },
+    usuario: { rol: "operador", id: 50, id_sede: 1 },
+  };
+  const res = mockRes();
+
+  await modificarAgenda(req, res);
+
+  assert.equal(res.statusCode, 403);
+  assert.match(res.body.estado, /propia sede/);
+});
+
+test("modificarAgenda rechaza si deja un turno confirmado fuera del nuevo horario", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([
+      [/FROM agenda WHERE id = \?/, [[{ id: 5, id_medico: 1, id_sede: 1 }]]],
+      ...REFERENCIAS_OK,
+      [/FROM turno\s+WHERE id_agenda = \? AND estado = 'confirmado'/, [[{ id: 1 }]]],
+    ])
+  );
+
+  const req = { params: { id: 5 }, body: AGENDA_VALIDA, usuario: { rol: "operador", id: 50, id_sede: 1 } };
+  const res = mockRes();
+
+  await modificarAgenda(req, res);
+
+  assert.equal(res.statusCode, 409);
+  assert.match(res.body.estado, /fuera del nuevo rango/);
+});
+
+test("modificarAgenda modifica el registro cuando todo es valido", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([
+      [/FROM agenda WHERE id = \?/, [[{ id: 5, id_medico: 1, id_sede: 1 }]]],
+      ...REFERENCIAS_OK,
+      [/FROM turno\s+WHERE id_agenda = \? AND estado = 'confirmado'/, [[]]],
+      [/FROM agenda WHERE id_medico = \?/, [[]]],
+      [/UPDATE agenda/, [{}]],
+      [/INSERT INTO log_auditoria/, [{}]],
+    ])
+  );
+
+  const req = { params: { id: 5 }, body: AGENDA_VALIDA, usuario: { rol: "operador", id: 50, id_sede: 1 } };
+  const res = mockRes();
+
+  await modificarAgenda(req, res);
+
+  assert.equal(res.statusCode, 200);
+});
+
+test("eliminarAgenda rechaza a un operador eliminando agenda de otra sede", async (t) => {
+  t.mock.method(pool, "query", mockQuery([[/FROM agenda WHERE id = \?/, [[{ id: 5, id_medico: 1, id_sede: 2 }]]]]));
+
+  const req = { params: { id: 5 }, usuario: { rol: "operador", id: 50, id_sede: 1 } };
+  const res = mockRes();
+
+  await eliminarAgenda(req, res);
+
+  assert.equal(res.statusCode, 403);
+  assert.match(res.body.estado, /propia sede/);
+});
+
+test("eliminarAgenda permite a un medico eliminar su propia agenda en cualquiera de sus sedes", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([
+      [/FROM agenda WHERE id = \?/, [[{ id: 5, id_medico: 3, id_sede: 2 }]]],
+      [/FROM turno WHERE id_agenda = \?/, [[]]],
+      [/DELETE FROM agenda/, [{}]],
+      [/INSERT INTO log_auditoria/, [{}]],
+    ])
+  );
+
+  const req = { params: { id: 5 }, usuario: { rol: "medico", id: 3, id_sede: 1 } };
+  const res = mockRes();
+
+  await eliminarAgenda(req, res);
+
+  assert.equal(res.statusCode, 200);
 });

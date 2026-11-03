@@ -155,7 +155,7 @@ export async function reprogramarTurno(req, res) {
     const { rol, id: idUsuario, id_sede: sedeToken } = req.usuario;
 
     const [turnos] = await pool.query(
-      `SELECT t.*, a.id_sede
+      `SELECT t.*, a.id_medico, a.id_sede
        FROM turno t
        JOIN agenda a ON a.id = t.id_agenda
        WHERE t.id = ?`,
@@ -170,10 +170,13 @@ export async function reprogramarTurno(req, res) {
       return respuestaError(res, 403, "Un paciente solo puede reprogramar sus propios turnos");
     }
 
-    if (
-      (rol === "operador" || rol === "medico") &&
-      Number(turno.id_sede) !== Number(sedeToken)
-    ) {
+    // El médico puede atender en más de una sede: lo que importa es que el
+    // turno sea de su propia agenda, sin importar en cuál de sus sedes.
+    if (rol === "medico" && Number(turno.id_medico) !== Number(idUsuario)) {
+      return respuestaError(res, 403, "Un médico solo puede reprogramar turnos de su propia agenda");
+    }
+
+    if (rol === "operador" && Number(turno.id_sede) !== Number(sedeToken)) {
       return respuestaError(res, 403, "No tiene permisos para reprogramar turnos de otra sede");
     }
 
@@ -275,10 +278,13 @@ export async function cancelarTurno(req, res) {
       return respuestaError(res, 403, "Un paciente solo puede cancelar sus propios turnos");
     }
 
-    if (
-      (rol === "operador" || rol === "medico") &&
-      Number(turno.id_sede) !== Number(sedeToken)
-    ) {
+    // El médico puede atender en más de una sede: lo que importa es que el
+    // turno sea de su propia agenda, sin importar en cuál de sus sedes.
+    if (rol === "medico" && Number(turno.id_medico) !== Number(idUsuario)) {
+      return respuestaError(res, 403, "Un médico solo puede cancelar turnos de su propia agenda");
+    }
+
+    if (rol === "operador" && Number(turno.id_sede) !== Number(sedeToken)) {
       return respuestaError(res, 403, "No tiene permisos para cancelar turnos de otra sede");
     }
 
