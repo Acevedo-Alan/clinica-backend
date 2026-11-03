@@ -2,6 +2,7 @@ import pool from "../database/db.js";
 import { respuestaOk, respuestaError } from "../utils/respuesta.js";
 import { crearNotificacion } from "./notificacionController.js";
 import { registrarAuditoria } from "../utils/auditoria.js";
+import { parsePaginacion, datosPaginados } from "../utils/paginacion.js";
 
 // Formatea una fecha (Date o string) como dd/mm/yyyy para los mensajes de notificación
 function formatearFecha(fecha) {
@@ -12,11 +13,16 @@ function formatearFecha(fecha) {
 }
 
 // La misma fecha (Date o string) como "YYYY-MM-DD", para comparar contra el día de hoy.
+// Si ya es un string "YYYY-MM-DD..." se recorta directo: pasarlo por `new Date(string)`
+// lo interpreta como UTC y en husos horarios detrás de UTC (Argentina, UTC-3) corre
+// la fecha local un día para atrás.
 function fechaISO(fecha) {
-  const d = fecha instanceof Date ? fecha : new Date(fecha);
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
+  if (!(fecha instanceof Date)) {
+    return String(fecha).slice(0, 10);
+  }
+  const yyyy = fecha.getFullYear();
+  const mm = String(fecha.getMonth() + 1).padStart(2, "0");
+  const dd = String(fecha.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 }
 
@@ -248,18 +254,26 @@ export async function atenderTurno(req, res) {
   }
 }
 
-// GET /turnos/mios - turnos del paciente autenticado, del más próximo al más lejano
+// GET /turnos/mios?page=&pageSize= - turnos del paciente autenticado, del más próximo al más lejano.
+// Paginado porque, a diferencia de turnosMedico/turnosSede (acotados a una fecha puntual),
+// acumula todo el historial del paciente sin límite de tiempo.
 export async function misTurnos(req, res) {
   try {
     const { id } = req.usuario;
+    const { page, pageSize, offset } = parsePaginacion(req.query);
 
-    const [rows] = await pool.query(
-      `SELECT id, nota, id_agenda, fecha, hora, id_paciente, id_cobertura, estado
-       FROM turno WHERE id_paciente = ? ORDER BY fecha ASC, hora ASC`,
+    const [[{ total }]] = await pool.query(
+      "SELECT COUNT(*) AS total FROM turno WHERE id_paciente = ?",
       [id]
     );
 
-    return respuestaOk(res, 200, rows);
+    const [rows] = await pool.query(
+      `SELECT id, nota, id_agenda, fecha, hora, id_paciente, id_cobertura, estado
+       FROM turno WHERE id_paciente = ? ORDER BY fecha ASC, hora ASC LIMIT ? OFFSET ?`,
+      [id, pageSize, offset]
+    );
+
+    return respuestaOk(res, 200, datosPaginados(rows, total, page, pageSize));
   } catch (error) {
     console.error("Error al listar mis turnos:", error);
     return respuestaError(res, 500, "Error al obtener los turnos");
