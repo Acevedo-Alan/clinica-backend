@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
   crearTurno,
+  reprogramarTurno,
   cancelarTurno,
   atenderTurno,
   misTurnos,
@@ -19,6 +20,12 @@ router.get("/mios", verificarToken, verificarRol("paciente"), misTurnos);
 router.get("/medico", verificarToken, verificarRol("medico"), turnosMedico);
 router.get("/sede", verificarToken, verificarRol("operador"), turnosSede);
 
+router.put(
+  "/:id/reprogramar",
+  verificarToken,
+  verificarRol("paciente", "operador", "medico"),
+  reprogramarTurno
+);
 router.put(
   "/:id/cancelar",
   verificarToken,

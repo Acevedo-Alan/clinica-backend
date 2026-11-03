@@ -139,6 +139,120 @@ export async function crearTurno(req, res) {
   }
 }
 
+// PUT /turnos/:id/reprogramar
+// Mueve un turno confirmado a otro id_agenda/hora, conservando el mismo id,
+// paciente, nota y cobertura (es el mismo turno, no uno nuevo). Reutiliza las
+// mismas validaciones de horario/fecha/disponibilidad que crearTurno.
+export async function reprogramarTurno(req, res) {
+  try {
+    const { id } = req.params;
+    const { id_agenda, hora } = req.body;
+
+    if (!id_agenda || !hora) {
+      return respuestaError(res, 400, "Faltan datos obligatorios: id_agenda, hora");
+    }
+
+    const { rol, id: idUsuario, id_sede: sedeToken } = req.usuario;
+
+    const [turnos] = await pool.query(
+      `SELECT t.*, a.id_sede
+       FROM turno t
+       JOIN agenda a ON a.id = t.id_agenda
+       WHERE t.id = ?`,
+      [id]
+    );
+    if (turnos.length === 0) {
+      return respuestaError(res, 404, "El turno no existe");
+    }
+    const turno = turnos[0];
+
+    if (rol === "paciente" && Number(turno.id_paciente) !== Number(idUsuario)) {
+      return respuestaError(res, 403, "Un paciente solo puede reprogramar sus propios turnos");
+    }
+
+    if (
+      (rol === "operador" || rol === "medico") &&
+      Number(turno.id_sede) !== Number(sedeToken)
+    ) {
+      return respuestaError(res, 403, "No tiene permisos para reprogramar turnos de otra sede");
+    }
+
+    if (turno.estado !== "confirmado") {
+      return respuestaError(
+        res,
+        409,
+        `El turno ya se encuentra en estado '${turno.estado}', no se puede reprogramar`
+      );
+    }
+
+    const [agendas] = await pool.query("SELECT * FROM agenda WHERE id = ?", [id_agenda]);
+    if (agendas.length === 0) {
+      return respuestaError(res, 400, "La agenda indicada no existe");
+    }
+    const agendaNueva = agendas[0];
+
+    const hoy = fechaISO(new Date());
+    const fechaAgendaNueva = fechaISO(agendaNueva.fecha);
+    if (fechaAgendaNueva < hoy) {
+      return respuestaError(res, 400, "No se puede reprogramar un turno a una fecha pasada");
+    }
+    if (fechaAgendaNueva === hoy) {
+      const horaActual = new Date().toTimeString().slice(0, 5);
+      if (hora < horaActual) {
+        return respuestaError(res, 400, "No se puede reprogramar un turno a un horario que ya pasó");
+      }
+    }
+
+    if (!(hora >= agendaNueva.hora_entrada && hora < agendaNueva.hora_salida)) {
+      return respuestaError(
+        res,
+        400,
+        "El horario solicitado no está disponible en la agenda del médico"
+      );
+    }
+
+    const [turnosExistentes] = await pool.query(
+      `SELECT id FROM turno
+       WHERE id_agenda = ? AND fecha = ? AND hora = ? AND estado = 'confirmado' AND id <> ?
+       LIMIT 1`,
+      [id_agenda, agendaNueva.fecha, hora, id]
+    );
+    if (turnosExistentes.length > 0) {
+      return respuestaError(res, 409, "Ya existe un turno confirmado para ese horario");
+    }
+
+    await pool.query(
+      "UPDATE turno SET id_agenda = ?, fecha = ?, hora = ? WHERE id = ?",
+      [id_agenda, agendaNueva.fecha, hora, id]
+    );
+
+    await crearNotificacion(
+      turno.id_paciente,
+      "turno_reprogramado",
+      `Tu turno fue reprogramado para el ${formatearFecha(agendaNueva.fecha)} a las ${hora}.`
+    );
+
+    await registrarAuditoria(
+      idUsuario,
+      "MODIFICACION",
+      "turno",
+      Number(id),
+      `Reprogramación de turno del paciente ${turno.id_paciente} al ${formatearFecha(agendaNueva.fecha)} a las ${hora}`
+    );
+
+    return respuestaOk(res, 200, {
+      id: Number(id),
+      id_agenda: Number(id_agenda),
+      fecha: agendaNueva.fecha,
+      hora,
+      estado: "confirmado",
+    });
+  } catch (error) {
+    console.error("Error al reprogramar el turno:", error);
+    return respuestaError(res, 500, "Error al reprogramar el turno");
+  }
+}
+
 // PUT /turnos/:id/cancelar
 export async function cancelarTurno(req, res) {
   try {
