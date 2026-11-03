@@ -41,6 +41,14 @@ export async function crearHistorial(req, res) {
       );
     }
 
+    const [historialExistente] = await pool.query(
+      "SELECT id FROM historial_clinico WHERE id_turno = ? LIMIT 1",
+      [id_turno]
+    );
+    if (historialExistente.length > 0) {
+      return respuestaError(res, 409, "Ya existe un historial clínico para este turno");
+    }
+
     const [resultado] = await pool.query(
       `INSERT INTO historial_clinico (id_turno, id_medico, id_paciente, diagnostico, tratamiento, observaciones)
        VALUES (?, ?, ?, ?, ?, ?)`,
