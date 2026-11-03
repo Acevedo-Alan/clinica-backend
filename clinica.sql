@@ -180,13 +180,23 @@ INSERT INTO `notificacion` (`id`, `id_usuario`, `tipo`, `mensaje`, `leida`, `fec
 -- Índices para tablas volcadas
 --
 ALTER TABLE `sede` ADD PRIMARY KEY (`id`);
+ALTER TABLE `sede` ADD UNIQUE KEY `nombre` (`nombre`);
 ALTER TABLE `cobertura` ADD PRIMARY KEY (`id`);
+ALTER TABLE `cobertura` ADD UNIQUE KEY `nombre` (`nombre`);
 ALTER TABLE `especialidad` ADD PRIMARY KEY (`id`);
+ALTER TABLE `especialidad` ADD UNIQUE KEY `descripcion` (`descripcion`);
 
+-- UNIQUE en dni/email: el controller ya rechaza duplicados antes del INSERT,
+-- pero esa verificacion "SELECT, despues INSERT" no es atomica (dos altas
+-- concurrentes con el mismo DNI pueden pasar el chequeo las dos). El UNIQUE
+-- es la unica barrera que de verdad lo impide, y de paso indexa las columnas
+-- que mas se consultan (login por dni, chequeos de duplicado por email).
 ALTER TABLE `usuario`
   ADD PRIMARY KEY (`id`),
   ADD KEY `id_sede` (`id_sede`),
-  ADD KEY `id_cobertura` (`id_cobertura`);
+  ADD KEY `id_cobertura` (`id_cobertura`),
+  ADD UNIQUE KEY `dni` (`dni`),
+  ADD UNIQUE KEY `email` (`email`);
 
 ALTER TABLE `medico_especialidad`
   ADD PRIMARY KEY (`id`),
@@ -197,7 +207,8 @@ ALTER TABLE `agenda`
   ADD PRIMARY KEY (`id`),
   ADD KEY `id_especialidad` (`id_especialidad`),
   ADD KEY `id_medico` (`id_medico`),
-  ADD KEY `id_sede` (`id_sede`);
+  ADD KEY `id_sede` (`id_sede`),
+  ADD KEY `idx_medico_fecha` (`id_medico`, `fecha`);
 
 ALTER TABLE `turno`
   ADD PRIMARY KEY (`id`),
