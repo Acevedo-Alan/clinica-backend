@@ -31,6 +31,34 @@ async function validarReferencias({ id_medico, id_especialidad, id_sede }) {
   return null;
 }
 
+// Fecha de hoy como "YYYY-MM-DD" en hora local, para comparar contra el
+// "fecha" de la agenda (string tal como viene del body, mismo formato).
+function hoyISO() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+// Un médico no puede tener dos bloques de agenda que se superpongan el mismo día.
+// idExcluir se usa en la modificación para no comparar el registro contra sí mismo.
+async function existeSuperposicion({ id_medico, fecha, hora_entrada, hora_salida, idExcluir }) {
+  const condiciones = ["id_medico = ?", "fecha = ?", "hora_entrada < ?", "hora_salida > ?"];
+  const valores = [id_medico, fecha, hora_salida, hora_entrada];
+
+  if (idExcluir) {
+    condiciones.push("id <> ?");
+    valores.push(idExcluir);
+  }
+
+  const [filas] = await pool.query(
+    `SELECT id FROM agenda WHERE ${condiciones.join(" AND ")} LIMIT 1`,
+    valores
+  );
+  return filas.length > 0;
+}
+
 // POST /agenda
 export async function crearAgenda(req, res) {
   try {
@@ -45,6 +73,14 @@ export async function crearAgenda(req, res) {
       );
     }
 
+    if (hora_entrada >= hora_salida) {
+      return respuestaError(res, 400, "La hora de entrada debe ser anterior a la hora de salida");
+    }
+
+    if (fecha < hoyISO()) {
+      return respuestaError(res, 400, "No se puede crear un registro de agenda con fecha pasada");
+    }
+
     const { rol, id } = req.usuario;
 
     if (rol === "medico" && Number(id_medico) !== Number(id)) {
@@ -54,6 +90,14 @@ export async function crearAgenda(req, res) {
     const errorReferencia = await validarReferencias({ id_medico, id_especialidad, id_sede });
     if (errorReferencia) {
       return respuestaError(res, 400, errorReferencia);
+    }
+
+    if (await existeSuperposicion({ id_medico, fecha, hora_entrada, hora_salida })) {
+      return respuestaError(
+        res,
+        409,
+        "El médico ya tiene un registro de agenda que se superpone con ese horario"
+      );
     }
 
     const [resultado] = await pool.query(
@@ -85,11 +129,13 @@ export async function crearAgenda(req, res) {
   }
 }
 
-// GET /agenda?id_medico=&id_sede=&fecha=
+// GET /agenda?id_medico=&id_sede=&id_especialidad=&fecha=
+// Paciente la usa para encontrar un id_agenda disponible antes de reservar un turno
+// (POST /turnos), por lo que queda en modo lectura para cualquier rol autenticado.
 export async function listarAgenda(req, res) {
   try {
     const { rol, id } = req.usuario;
-    let { id_medico, id_sede, fecha } = req.query;
+    let { id_medico, id_sede, id_especialidad, fecha } = req.query;
 
     // Un médico solo puede ver su propia agenda, sin importar lo que pida por query
     if (rol === "medico") {
@@ -106,6 +152,10 @@ export async function listarAgenda(req, res) {
     if (id_sede) {
       condiciones.push("id_sede = ?");
       valores.push(id_sede);
+    }
+    if (id_especialidad) {
+      condiciones.push("id_especialidad = ?");
+      valores.push(id_especialidad);
     }
     if (fecha) {
       condiciones.push("fecha = ?");
@@ -142,6 +192,14 @@ export async function modificarAgenda(req, res) {
       );
     }
 
+    if (hora_entrada >= hora_salida) {
+      return respuestaError(res, 400, "La hora de entrada debe ser anterior a la hora de salida");
+    }
+
+    if (fecha < hoyISO()) {
+      return respuestaError(res, 400, "No se puede modificar un registro de agenda a una fecha pasada");
+    }
+
     const [existentes] = await pool.query("SELECT * FROM agenda WHERE id = ?", [id]);
     if (existentes.length === 0) {
       return respuestaError(res, 404, "El registro de agenda no existe");
@@ -162,6 +220,14 @@ export async function modificarAgenda(req, res) {
     const errorReferencia = await validarReferencias({ id_medico, id_especialidad, id_sede });
     if (errorReferencia) {
       return respuestaError(res, 400, errorReferencia);
+    }
+
+    if (await existeSuperposicion({ id_medico, fecha, hora_entrada, hora_salida, idExcluir: id })) {
+      return respuestaError(
+        res,
+        409,
+        "El médico ya tiene un registro de agenda que se superpone con ese horario"
+      );
     }
 
     await pool.query(
