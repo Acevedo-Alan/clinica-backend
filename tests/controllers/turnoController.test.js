@@ -2,8 +2,19 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import pool from "../../src/database/db.js";
-import { crearTurno } from "../../src/controllers/turnoController.js";
+import {
+  crearTurno,
+  cancelarTurno,
+  atenderTurno,
+  turnosMedico,
+  turnosSede,
+  misTurnos,
+} from "../../src/controllers/turnoController.js";
 import { mockRes, mockQuery } from "../helpers/http.js";
+
+// La fecha de la agenda importa poco una vez pasado el chequeo de fecha/hora
+// pasada (ya cubierto arriba), asi que estos tests usan una fecha futura fija.
+const AGENDA_FUTURA = { id: 1, fecha: "2999-01-01", hora_entrada: "08:00", hora_salida: "12:00" };
 
 // Misma lógica que fechaISO() en turnoController.js, para construir la fecha
 // de "hoy" que usa el mock de agenda sin duplicar el controller completo.
@@ -59,4 +70,253 @@ test("crearTurno rechaza un horario de hoy que ya pasó", async (t) => {
 
   assert.equal(res.statusCode, 400);
   assert.match(res.body.estado, /ya pasó/);
+});
+
+test("crearTurno rechaza si ya hay un turno confirmado en ese horario", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([
+      [/FROM agenda WHERE id = \?/, [[AGENDA_FUTURA]]],
+      [/FROM turno\s+WHERE id_agenda = \? AND fecha = \? AND hora = \? AND estado/, [[{ id: 5 }]]],
+    ])
+  );
+
+  const req = {
+    body: { id_agenda: 1, hora: "09:00", nota: "control" },
+    usuario: { rol: "paciente", id: 7 },
+  };
+  const res = mockRes();
+
+  await crearTurno(req, res);
+
+  assert.equal(res.statusCode, 409);
+});
+
+test("crearTurno crea el turno cuando todo es valido", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([
+      [/FROM agenda WHERE id = \?/, [[AGENDA_FUTURA]]],
+      [/FROM turno\s+WHERE id_agenda = \? AND fecha = \? AND hora = \? AND estado/, [[]]],
+      [/id_cobertura FROM usuario WHERE id = \?/, [[{ id_cobertura: 2 }]]],
+      [/INSERT INTO turno/, [{ insertId: 50 }]],
+      [/INSERT INTO notificacion/, [{}]],
+      [/INSERT INTO log_auditoria/, [{}]],
+    ])
+  );
+
+  const req = {
+    body: { id_agenda: 1, hora: "09:00", nota: "control" },
+    usuario: { rol: "paciente", id: 7 },
+  };
+  const res = mockRes();
+
+  await crearTurno(req, res);
+
+  assert.equal(res.statusCode, 201);
+  assert.equal(res.body.datos.id, 50);
+  assert.equal(res.body.datos.estado, "confirmado");
+});
+
+test("cancelarTurno responde 404 si el turno no existe", async (t) => {
+  t.mock.method(pool, "query", mockQuery([[/FROM turno t/, [[]]]]));
+
+  const req = { params: { id: 1 }, usuario: { rol: "paciente", id: 7 } };
+  const res = mockRes();
+
+  await cancelarTurno(req, res);
+
+  assert.equal(res.statusCode, 404);
+});
+
+test("cancelarTurno rechaza si un paciente intenta cancelar el turno de otro", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([[/FROM turno t/, [[{ id: 1, estado: "confirmado", id_paciente: 7, id_sede: 1 }]]]])
+  );
+
+  const req = { params: { id: 1 }, usuario: { rol: "paciente", id: 999 } };
+  const res = mockRes();
+
+  await cancelarTurno(req, res);
+
+  assert.equal(res.statusCode, 403);
+});
+
+test("cancelarTurno rechaza a un operador de otra sede", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([[/FROM turno t/, [[{ id: 1, estado: "confirmado", id_paciente: 7, id_sede: 1 }]]]])
+  );
+
+  const req = { params: { id: 1 }, usuario: { rol: "operador", id: 50, id_sede: 2 } };
+  const res = mockRes();
+
+  await cancelarTurno(req, res);
+
+  assert.equal(res.statusCode, 403);
+});
+
+test("cancelarTurno rechaza un turno que ya no esta confirmado", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([[/FROM turno t/, [[{ id: 1, estado: "cancelado", id_paciente: 7, id_sede: 1 }]]]])
+  );
+
+  const req = { params: { id: 1 }, usuario: { rol: "paciente", id: 7 } };
+  const res = mockRes();
+
+  await cancelarTurno(req, res);
+
+  assert.equal(res.statusCode, 409);
+});
+
+test("cancelarTurno cancela el propio turno del paciente", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([
+      [/FROM turno t/, [[{ id: 1, estado: "confirmado", id_paciente: 7, id_sede: 1, fecha: "2999-01-01", hora: "09:00" }]]],
+      [/UPDATE turno SET estado = 'cancelado'/, [{}]],
+      [/INSERT INTO notificacion/, [{}]],
+      [/INSERT INTO log_auditoria/, [{}]],
+    ])
+  );
+
+  const req = { params: { id: 1 }, usuario: { rol: "paciente", id: 7 } };
+  const res = mockRes();
+
+  await cancelarTurno(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.datos.estado, "cancelado");
+});
+
+test("atenderTurno responde 404 si el turno no existe", async (t) => {
+  t.mock.method(pool, "query", mockQuery([[/FROM turno t/, [[]]]]));
+
+  const req = { params: { id: 1 }, usuario: { id: 3 } };
+  const res = mockRes();
+
+  await atenderTurno(req, res);
+
+  assert.equal(res.statusCode, 404);
+});
+
+test("atenderTurno rechaza si el medico no es el de la agenda", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([[/FROM turno t/, [[{ id: 1, estado: "confirmado", id_medico: 3, id_paciente: 7 }]]]])
+  );
+
+  const req = { params: { id: 1 }, usuario: { id: 999 } };
+  const res = mockRes();
+
+  await atenderTurno(req, res);
+
+  assert.equal(res.statusCode, 403);
+});
+
+test("atenderTurno rechaza un turno que ya no esta confirmado", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([[/FROM turno t/, [[{ id: 1, estado: "atendido", id_medico: 3, id_paciente: 7 }]]]])
+  );
+
+  const req = { params: { id: 1 }, usuario: { id: 3 } };
+  const res = mockRes();
+
+  await atenderTurno(req, res);
+
+  assert.equal(res.statusCode, 409);
+});
+
+test("atenderTurno marca el turno como atendido", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([
+      [/FROM turno t/, [[{ id: 1, estado: "confirmado", id_medico: 3, id_paciente: 7, fecha: "2999-01-01", hora: "09:00" }]]],
+      [/UPDATE turno SET estado = 'atendido'/, [{}]],
+      [/INSERT INTO notificacion/, [{}]],
+      [/INSERT INTO log_auditoria/, [{}]],
+    ])
+  );
+
+  const req = { params: { id: 1 }, usuario: { id: 3 } };
+  const res = mockRes();
+
+  await atenderTurno(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.datos.estado, "atendido");
+});
+
+test("turnosMedico rechaza si falta la fecha", async () => {
+  const req = { query: {}, usuario: { id: 3 } };
+  const res = mockRes();
+
+  await turnosMedico(req, res);
+
+  assert.equal(res.statusCode, 400);
+});
+
+test("turnosMedico lista los turnos del medico autenticado para esa fecha", async (t) => {
+  t.mock.method(pool, "query", mockQuery([[/WHERE a\.id_medico = \?/, [[{ id: 1 }]]]]));
+
+  const req = { query: { fecha: "2999-01-01" }, usuario: { id: 3 } };
+  const res = mockRes();
+
+  await turnosMedico(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.datos.length, 1);
+});
+
+test("turnosSede rechaza si falta la fecha", async () => {
+  const req = { query: {}, usuario: { id_sede: 1 } };
+  const res = mockRes();
+
+  await turnosSede(req, res);
+
+  assert.equal(res.statusCode, 400);
+});
+
+test("turnosSede lista los turnos de la sede para esa fecha", async (t) => {
+  t.mock.method(pool, "query", mockQuery([[/WHERE a\.id_sede = \?/, [[{ id: 1 }]]]]));
+
+  const req = { query: { fecha: "2999-01-01" }, usuario: { id_sede: 1 } };
+  const res = mockRes();
+
+  await turnosSede(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.datos.length, 1);
+});
+
+test("misTurnos devuelve el listado paginado del paciente autenticado", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([
+      [/SELECT COUNT\(\*\) AS total FROM turno WHERE id_paciente = \?/, [[{ total: 1 }]]],
+      [/FROM turno WHERE id_paciente = \? ORDER BY fecha ASC, hora ASC LIMIT/, [[{ id: 1 }]]],
+    ])
+  );
+
+  const req = { query: {}, usuario: { id: 7 } };
+  const res = mockRes();
+
+  await misTurnos(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.datos.total, 1);
+  assert.equal(res.body.datos.items.length, 1);
 });
