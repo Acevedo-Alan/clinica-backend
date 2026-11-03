@@ -22,6 +22,11 @@ export async function crearCobertura(req, res) {
       return respuestaError(res, 400, "El nombre es obligatorio");
     }
 
+    const [duplicadas] = await pool.query("SELECT id FROM cobertura WHERE nombre = ?", [nombre]);
+    if (duplicadas.length > 0) {
+      return respuestaError(res, 409, "Ya existe una cobertura con ese nombre");
+    }
+
     const [resultado] = await pool.query(
       "INSERT INTO cobertura (nombre) VALUES (?)",
       [nombre]
@@ -62,6 +67,14 @@ export async function modificarCobertura(req, res) {
 
     if (existentes.length === 0) {
       return respuestaError(res, 404, "La cobertura no existe");
+    }
+
+    const [duplicadas] = await pool.query(
+      "SELECT id FROM cobertura WHERE nombre = ? AND id <> ?",
+      [nombre, id]
+    );
+    if (duplicadas.length > 0) {
+      return respuestaError(res, 409, "Ya existe otra cobertura con ese nombre");
     }
 
     await pool.query("UPDATE cobertura SET nombre = ? WHERE id = ?", [

@@ -16,6 +16,14 @@ export async function crearEspecialidad(req, res) {
       );
     }
 
+    const [duplicadas] = await pool.query(
+      "SELECT id FROM especialidad WHERE descripcion = ?",
+      [descripcion]
+    );
+    if (duplicadas.length > 0) {
+      return respuestaError(res, 409, "Ya existe una especialidad con esa descripción");
+    }
+
     const [resultado] = await pool.query(
       "INSERT INTO especialidad (descripcion) VALUES (?)",
       [descripcion]
@@ -86,6 +94,14 @@ export async function modificarEspecialidad(req, res) {
         404,
         "La especialidad no existe"
       );
+    }
+
+    const [duplicadas] = await pool.query(
+      "SELECT id FROM especialidad WHERE descripcion = ? AND id <> ?",
+      [descripcion, id]
+    );
+    if (duplicadas.length > 0) {
+      return respuestaError(res, 409, "Ya existe otra especialidad con esa descripción");
     }
 
     await pool.query(

@@ -17,6 +17,11 @@ export async function crearSede(req, res) {
       );
     }
 
+    const [duplicadas] = await pool.query("SELECT id FROM sede WHERE nombre = ?", [nombre]);
+    if (duplicadas.length > 0) {
+      return respuestaError(res, 409, "Ya existe una sede con ese nombre");
+    }
+
     const [resultado] = await pool.query(
       "INSERT INTO sede (nombre, direccion, telefono) VALUES (?, ?, ?)",
       [nombre, direccion, telefono]
@@ -79,6 +84,14 @@ export async function modificarSede(req, res) {
 
     if (existentes.length === 0) {
       return respuestaError(res, 404, "La sede no existe");
+    }
+
+    const [duplicadas] = await pool.query(
+      "SELECT id FROM sede WHERE nombre = ? AND id <> ?",
+      [nombre, id]
+    );
+    if (duplicadas.length > 0) {
+      return respuestaError(res, 409, "Ya existe otra sede con ese nombre");
     }
 
     await pool.query(
