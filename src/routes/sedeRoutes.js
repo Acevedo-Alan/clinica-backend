@@ -11,11 +11,12 @@ import { verificarToken, verificarRol } from "../middlewares/auth.js";
 
 const router = Router();
 
-// Todos los endpoints de sedes requieren administrador
+// El listado es un selector usado por todos los roles (agenda, turnos, etc.);
+// el alta/modificación/baja quedan exclusivas de administrador.
 
 router.post("/", verificarToken, verificarRol("administrador"), crearSede);
 
-router.get("/", verificarToken, verificarRol("administrador"), listarSedes);
+router.get("/", verificarToken, listarSedes);
 
 router.put("/:id", verificarToken, verificarRol("administrador"), modificarSede);
 

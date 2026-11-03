@@ -1,5 +1,6 @@
 import pool from "../database/db.js";
 import { respuestaOk, respuestaError } from "../utils/respuesta.js";
+import { registrarAuditoria } from "../utils/auditoria.js";
 
 // Valida que médico, especialidad y sede existan antes de insertar/actualizar,
 // para no depender del error de foreign key sin controlar.
@@ -59,6 +60,14 @@ export async function crearAgenda(req, res) {
       `INSERT INTO agenda (hora_entrada, hora_salida, fecha, id_medico, id_especialidad, id_sede)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [hora_entrada, hora_salida, fecha, id_medico, id_especialidad, id_sede]
+    );
+
+    await registrarAuditoria(
+      req.usuario.id,
+      "ALTA",
+      "agenda",
+      resultado.insertId,
+      `Alta de agenda del médico ${id_medico} el ${fecha} de ${hora_entrada} a ${hora_salida}`
     );
 
     return respuestaOk(res, 201, {
@@ -162,6 +171,14 @@ export async function modificarAgenda(req, res) {
       [hora_entrada, hora_salida, fecha, id_medico, id_especialidad, id_sede, id]
     );
 
+    await registrarAuditoria(
+      req.usuario.id,
+      "MODIFICACION",
+      "agenda",
+      Number(id),
+      `Modificación de agenda del médico ${id_medico} el ${fecha} de ${hora_entrada} a ${hora_salida}`
+    );
+
     return respuestaOk(res, 200, {
       id: Number(id),
       hora_entrada,
@@ -208,6 +225,8 @@ export async function eliminarAgenda(req, res) {
     }
 
     await pool.query("DELETE FROM agenda WHERE id = ?", [id]);
+
+    await registrarAuditoria(req.usuario.id, "BAJA", "agenda", Number(id), "Baja de registro de agenda");
 
     return respuestaOk(res, 200, {
       id: Number(id),

@@ -14,7 +14,8 @@ import {
 
 const router = Router();
 
-// Todos los endpoints de especialidades requieren administrador
+// El listado es un selector usado por todos los roles (agenda, turnos, etc.);
+// el alta/modificación/baja quedan exclusivas de administrador.
 
 router.post(
   "/",
@@ -23,12 +24,7 @@ router.post(
   crearEspecialidad
 );
 
-router.get(
-  "/",
-  verificarToken,
-  verificarRol("administrador"),
-  listarEspecialidades
-);
+router.get("/", verificarToken, listarEspecialidades);
 
 router.put(
   "/:id",

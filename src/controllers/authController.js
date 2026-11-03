@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import pool from "../database/db.js";
 import { respuestaOk, respuestaError } from "../utils/respuesta.js";
+import { registrarAuditoria } from "../utils/auditoria.js";
 
 const SALT_ROUNDS = 10;
 
@@ -46,6 +47,15 @@ export async function registro(req, res) {
       `INSERT INTO usuario (apellido, nombre, fecha_nacimiento, password, rol, email, telefono, dni, id_sede, id_cobertura)
        VALUES (?, ?, ?, ?, 'paciente', ?, ?, ?, NULL, ?)`,
       [apellido, nombre, fecha_nacimiento, passwordHasheada, email, telefono || "", dni, id_cobertura]
+    );
+
+    // No hay actor autenticado en el self-registro: queda registrado el propio usuario nuevo.
+    await registrarAuditoria(
+      resultado.insertId,
+      "ALTA",
+      "usuario",
+      resultado.insertId,
+      `Alta de paciente ${nombre} ${apellido} (DNI ${dni})`
     );
 
     return respuestaOk(res, 201, {
@@ -106,20 +116,6 @@ export async function login(req, res) {
   } catch (error) {
     console.error("Error en login:", error);
     return respuestaError(res, 500, "Error al iniciar sesión");
-  }
-}
-
-// GET /auth/usuarios (protegido: verificarToken + verificarRol("administrador","operador"))
-// Endpoint de prueba pensado para validar el middleware verificarRol.
-export async function listarUsuarios(req, res) {
-  try {
-    const [usuarios] = await pool.query(
-      "SELECT id, apellido, nombre, rol, email, dni, id_sede, id_cobertura FROM usuario"
-    );
-    return respuestaOk(res, 200, usuarios);
-  } catch (error) {
-    console.error("Error al listar usuarios:", error);
-    return respuestaError(res, 500, "Error al obtener los usuarios");
   }
 }
 
