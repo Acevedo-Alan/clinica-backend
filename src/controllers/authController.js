@@ -139,3 +139,83 @@ export async function perfil(req, res) {
     return respuestaError(res, 500, "Error al obtener el perfil");
   }
 }
+
+// PUT /auth/perfil (protegido) - el usuario edita sus propios datos de contacto.
+// Rol, DNI, sede y cobertura no se tocan por esta vía (quedan a cargo del administrador).
+export async function actualizarPerfil(req, res) {
+  try {
+    const { id } = req.usuario;
+    const { nombre, apellido, email, telefono, fecha_nacimiento } = req.body;
+
+    if (!nombre || !apellido || !email || !fecha_nacimiento) {
+      return respuestaError(
+        res,
+        400,
+        "Faltan datos obligatorios: nombre, apellido, email, fecha_nacimiento"
+      );
+    }
+
+    const [emailDuplicado] = await pool.query(
+      "SELECT id FROM usuario WHERE email = ? AND id <> ?",
+      [email, id]
+    );
+    if (emailDuplicado.length > 0) {
+      return respuestaError(res, 409, "Ya existe otro usuario registrado con ese email");
+    }
+
+    await pool.query(
+      `UPDATE usuario
+       SET nombre = ?, apellido = ?, email = ?, telefono = ?, fecha_nacimiento = ?
+       WHERE id = ?`,
+      [nombre, apellido, email, telefono || "", fecha_nacimiento, id]
+    );
+
+    await registrarAuditoria(id, "MODIFICACION", "usuario", id, "Modificación de perfil propio");
+
+    const [usuarios] = await pool.query(
+      "SELECT id, apellido, nombre, fecha_nacimiento, rol, email, telefono, dni, id_sede, id_cobertura FROM usuario WHERE id = ?",
+      [id]
+    );
+
+    return respuestaOk(res, 200, usuarios[0]);
+  } catch (error) {
+    console.error("Error al actualizar perfil:", error);
+    return respuestaError(res, 500, "Error al actualizar el perfil");
+  }
+}
+
+// PUT /auth/password (protegido) - cambio de contraseña propia.
+export async function cambiarPassword(req, res) {
+  try {
+    const { id } = req.usuario;
+    const { passwordActual, passwordNueva } = req.body;
+
+    if (!passwordActual || !passwordNueva) {
+      return respuestaError(res, 400, "Faltan datos obligatorios: passwordActual, passwordNueva");
+    }
+
+    if (passwordNueva.length < 8) {
+      return respuestaError(res, 400, "La nueva contraseña debe tener al menos 8 caracteres");
+    }
+
+    const [usuarios] = await pool.query("SELECT password FROM usuario WHERE id = ?", [id]);
+    if (usuarios.length === 0) {
+      return respuestaError(res, 404, "Usuario no encontrado");
+    }
+
+    const passwordValida = await bcrypt.compare(passwordActual, usuarios[0].password);
+    if (!passwordValida) {
+      return respuestaError(res, 401, "La contraseña actual es incorrecta");
+    }
+
+    const passwordHasheada = await bcrypt.hash(passwordNueva, SALT_ROUNDS);
+    await pool.query("UPDATE usuario SET password = ? WHERE id = ?", [passwordHasheada, id]);
+
+    await registrarAuditoria(id, "MODIFICACION", "usuario", id, "Cambio de contraseña propia");
+
+    return respuestaOk(res, 200, { mensaje: "Contraseña actualizada correctamente" });
+  } catch (error) {
+    console.error("Error al cambiar la contraseña:", error);
+    return respuestaError(res, 500, "Error al cambiar la contraseña");
+  }
+}
