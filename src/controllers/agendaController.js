@@ -150,27 +150,37 @@ export async function listarAgenda(req, res) {
     const valores = [];
 
     if (id_medico) {
-      condiciones.push("id_medico = ?");
+      condiciones.push("a.id_medico = ?");
       valores.push(id_medico);
     }
     if (id_sede) {
-      condiciones.push("id_sede = ?");
+      condiciones.push("a.id_sede = ?");
       valores.push(id_sede);
     }
     if (id_especialidad) {
-      condiciones.push("id_especialidad = ?");
+      condiciones.push("a.id_especialidad = ?");
       valores.push(id_especialidad);
     }
     if (fecha) {
-      condiciones.push("fecha = ?");
+      condiciones.push("a.fecha = ?");
       valores.push(fecha);
     }
 
     const where = condiciones.length > 0 ? `WHERE ${condiciones.join(" AND ")}` : "";
 
+    // Se resuelven los nombres acá (médico, especialidad, sede) para que el
+    // frontend no tenga que pedirlos uno por uno a partir de los ids.
     const [rows] = await pool.query(
-      `SELECT id, hora_entrada, hora_salida, fecha, id_medico, id_especialidad, id_sede
-       FROM agenda ${where} ORDER BY fecha, hora_entrada`,
+      `SELECT a.id, a.hora_entrada, a.hora_salida, a.fecha,
+              a.id_medico, u.nombre AS medico_nombre, u.apellido AS medico_apellido,
+              a.id_especialidad, e.descripcion AS especialidad_descripcion,
+              a.id_sede, s.nombre AS sede_nombre
+       FROM agenda a
+       JOIN usuario u ON u.id = a.id_medico
+       JOIN especialidad e ON e.id = a.id_especialidad
+       JOIN sede s ON s.id = a.id_sede
+       ${where}
+       ORDER BY a.fecha, a.hora_entrada`,
       valores
     );
 

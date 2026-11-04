@@ -388,8 +388,18 @@ export async function misTurnos(req, res) {
     );
 
     const [rows] = await pool.query(
-      `SELECT id, nota, id_agenda, fecha, hora, id_paciente, id_cobertura, estado
-       FROM turno WHERE id_paciente = ? ORDER BY fecha ASC, hora ASC LIMIT ? OFFSET ?`,
+      `SELECT t.id, t.nota, t.id_agenda, t.fecha, t.hora, t.id_cobertura, t.estado,
+              a.id_medico, m.nombre AS medico_nombre, m.apellido AS medico_apellido,
+              a.id_especialidad, e.descripcion AS especialidad_descripcion,
+              a.id_sede, s.nombre AS sede_nombre
+       FROM turno t
+       JOIN agenda a ON a.id = t.id_agenda
+       JOIN usuario m ON m.id = a.id_medico
+       JOIN especialidad e ON e.id = a.id_especialidad
+       JOIN sede s ON s.id = a.id_sede
+       WHERE t.id_paciente = ?
+       ORDER BY t.fecha ASC, t.hora ASC
+       LIMIT ? OFFSET ?`,
       [id, pageSize, offset]
     );
 
@@ -411,9 +421,14 @@ export async function turnosMedico(req, res) {
     }
 
     const [rows] = await pool.query(
-      `SELECT t.id, t.nota, t.id_agenda, t.fecha, t.hora, t.id_paciente, t.id_cobertura, t.estado
+      `SELECT t.id, t.nota, t.id_agenda, t.fecha, t.hora, t.id_cobertura, t.estado,
+              t.id_paciente, p.nombre AS paciente_nombre, p.apellido AS paciente_apellido,
+              p.fecha_nacimiento AS paciente_fecha_nacimiento,
+              a.id_sede, s.nombre AS sede_nombre
        FROM turno t
        JOIN agenda a ON a.id = t.id_agenda
+       JOIN usuario p ON p.id = t.id_paciente
+       JOIN sede s ON s.id = a.id_sede
        WHERE a.id_medico = ? AND t.fecha = ?
        ORDER BY t.hora ASC`,
       [id, fecha]
@@ -437,9 +452,16 @@ export async function turnosSede(req, res) {
     }
 
     const [rows] = await pool.query(
-      `SELECT t.id, t.nota, t.id_agenda, t.fecha, t.hora, t.id_paciente, t.id_cobertura, t.estado
+      `SELECT t.id, t.nota, t.id_agenda, t.fecha, t.hora, t.id_cobertura, t.estado,
+              t.id_paciente, p.nombre AS paciente_nombre, p.apellido AS paciente_apellido,
+              p.fecha_nacimiento AS paciente_fecha_nacimiento,
+              a.id_medico, m.nombre AS medico_nombre, m.apellido AS medico_apellido,
+              a.id_especialidad, e.descripcion AS especialidad_descripcion
        FROM turno t
        JOIN agenda a ON a.id = t.id_agenda
+       JOIN usuario p ON p.id = t.id_paciente
+       JOIN usuario m ON m.id = a.id_medico
+       JOIN especialidad e ON e.id = a.id_especialidad
        WHERE a.id_sede = ? AND t.fecha = ?
        ORDER BY t.hora ASC`,
       [id_sede, fecha]

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import pool from "../../src/database/db.js";
-import { crearAgenda, modificarAgenda, eliminarAgenda } from "../../src/controllers/agendaController.js";
+import { crearAgenda, listarAgenda, modificarAgenda, eliminarAgenda } from "../../src/controllers/agendaController.js";
 import { mockRes, mockQuery } from "../helpers/http.js";
 
 const AGENDA_VALIDA = {
@@ -116,6 +116,42 @@ test("crearAgenda crea el registro cuando todo es valido", async (t) => {
 
   assert.equal(res.statusCode, 201);
   assert.equal(res.body.datos.id, 10);
+});
+
+test("listarAgenda devuelve el nombre del medico, la especialidad y la sede resueltos", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([
+      [
+        /FROM agenda a/,
+        [
+          [
+            {
+              id: 1,
+              id_medico: 3,
+              medico_nombre: "Ana",
+              medico_apellido: "Lopez",
+              id_especialidad: 1,
+              especialidad_descripcion: "Traumatologia",
+              id_sede: 1,
+              sede_nombre: "Sede Centro",
+            },
+          ],
+        ],
+      ],
+    ])
+  );
+
+  const req = { query: { id_especialidad: 1 }, usuario: { rol: "paciente", id: 7 } };
+  const res = mockRes();
+
+  await listarAgenda(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.datos[0].medico_apellido, "Lopez");
+  assert.equal(res.body.datos[0].especialidad_descripcion, "Traumatologia");
+  assert.equal(res.body.datos[0].sede_nombre, "Sede Centro");
 });
 
 test("modificarAgenda rechaza a un operador modificando agenda de otra sede", async (t) => {

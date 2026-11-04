@@ -474,8 +474,17 @@ test("turnosMedico rechaza si falta la fecha", async () => {
   assert.equal(res.statusCode, 400);
 });
 
-test("turnosMedico lista los turnos del medico autenticado para esa fecha", async (t) => {
-  t.mock.method(pool, "query", mockQuery([[/WHERE a\.id_medico = \?/, [[{ id: 1 }]]]]));
+test("turnosMedico lista los turnos del medico autenticado para esa fecha, con el paciente y la sede resueltos", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([
+      [
+        /WHERE a\.id_medico = \?/,
+        [[{ id: 1, paciente_nombre: "Smoke", paciente_apellido: "Paciente", sede_nombre: "Sede Centro" }]],
+      ],
+    ])
+  );
 
   const req = { query: { fecha: "2999-01-01" }, usuario: { id: 3 } };
   const res = mockRes();
@@ -484,6 +493,8 @@ test("turnosMedico lista los turnos del medico autenticado para esa fecha", asyn
 
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.datos.length, 1);
+  assert.equal(res.body.datos[0].paciente_apellido, "Paciente");
+  assert.equal(res.body.datos[0].sede_nombre, "Sede Centro");
 });
 
 test("turnosSede rechaza si falta la fecha", async () => {
@@ -495,8 +506,28 @@ test("turnosSede rechaza si falta la fecha", async () => {
   assert.equal(res.statusCode, 400);
 });
 
-test("turnosSede lista los turnos de la sede para esa fecha", async (t) => {
-  t.mock.method(pool, "query", mockQuery([[/WHERE a\.id_sede = \?/, [[{ id: 1 }]]]]));
+test("turnosSede lista los turnos de la sede para esa fecha, con paciente y medico resueltos", async (t) => {
+  t.mock.method(
+    pool,
+    "query",
+    mockQuery([
+      [
+        /WHERE a\.id_sede = \?/,
+        [
+          [
+            {
+              id: 1,
+              paciente_nombre: "Smoke",
+              paciente_apellido: "Paciente",
+              medico_nombre: "Ana",
+              medico_apellido: "Lopez",
+              especialidad_descripcion: "Traumatologia",
+            },
+          ],
+        ],
+      ],
+    ])
+  );
 
   const req = { query: { fecha: "2999-01-01" }, usuario: { id_sede: 1 } };
   const res = mockRes();
@@ -505,6 +536,8 @@ test("turnosSede lista los turnos de la sede para esa fecha", async (t) => {
 
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.datos.length, 1);
+  assert.equal(res.body.datos[0].medico_apellido, "Lopez");
+  assert.equal(res.body.datos[0].especialidad_descripcion, "Traumatologia");
 });
 
 test("misTurnos devuelve el listado paginado del paciente autenticado", async (t) => {
@@ -513,7 +546,10 @@ test("misTurnos devuelve el listado paginado del paciente autenticado", async (t
     "query",
     mockQuery([
       [/SELECT COUNT\(\*\) AS total FROM turno WHERE id_paciente = \?/, [[{ total: 1 }]]],
-      [/FROM turno WHERE id_paciente = \? ORDER BY fecha ASC, hora ASC LIMIT/, [[{ id: 1 }]]],
+      [
+        /WHERE t\.id_paciente = \?/,
+        [[{ id: 1, medico_apellido: "Lopez", especialidad_descripcion: "Traumatologia", sede_nombre: "Sede Centro" }]],
+      ],
     ])
   );
 
@@ -525,4 +561,6 @@ test("misTurnos devuelve el listado paginado del paciente autenticado", async (t
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.datos.total, 1);
   assert.equal(res.body.datos.items.length, 1);
+  assert.equal(res.body.datos.items[0].medico_apellido, "Lopez");
+  assert.equal(res.body.datos.items[0].sede_nombre, "Sede Centro");
 });
