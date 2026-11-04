@@ -14,6 +14,9 @@ import agendaRoutes from "./routes/agendaRoutes.js";
 import turnoRoutes from "./routes/turnoRoutes.js";
 import historialRoutes from "./routes/historialRoutes.js";
 import notificacionRoutes from "./routes/notificacionRoutes.js";
+import medicoRoutes from "./routes/medicoRoutes.js";
+import pacienteRoutes from "./routes/pacienteRoutes.js";
+import disponibilidadRoutes from "./routes/disponibilidadRoutes.js";
 
 const app = express();
 
@@ -42,6 +45,9 @@ app.use("/agenda", agendaRoutes);
 app.use("/turnos", turnoRoutes);
 app.use("/historial", historialRoutes);
 app.use("/notificaciones", notificacionRoutes);
+app.use("/medicos", medicoRoutes);
+app.use("/pacientes", pacienteRoutes);
+app.use("/disponibilidad", disponibilidadRoutes);
 
 // 404 - también respeta el formato uniforme
 app.use((req, res) => {
