@@ -1,27 +1,106 @@
 {
   "info": {
-    "name": "Clinica - Backend Semana 1, 2 y 3",
-    "description": "Setup, conexion a la base, autenticacion por DNI (Semana 1), CRUDs de sedes, especialidades, coberturas y agenda medica (Semana 2), y turnos, historial clinico y notificaciones (Semana 3)",
+    "name": "Clinica - Backend Semanas 1 a 4",
+    "description": "Setup, conexion a la base y autenticacion por DNI (Semana 1); CRUDs de sedes, especialidades, coberturas y agenda (Semana 2); turnos, historial clinico y notificaciones (Semana 3); y los endpoints agregados para el frontend (Semana 4): medicos, disponibilidad, pacientes, perfil y contrasena, usuarios, auditoria y reportes. Ejecutar primero la carpeta \"Auth - Login por rol\". Las fechas de prueba se calculan solas (variables fecha_prueba, fecha_prueba2, fecha_turnos y fecha_hoy).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_url", "value": "http://localhost:3000" },
-    { "key": "token", "value": "" },
-    { "key": "token_admin", "value": "" },
-    { "key": "token_medico", "value": "" },
-    { "key": "token_operador", "value": "" },
-    { "key": "token_paciente", "value": "" },
-    { "key": "sede_id", "value": "" },
-    { "key": "especialidad_id", "value": "" },
-    { "key": "cobertura_id", "value": "" },
-    { "key": "agenda_id", "value": "" },
-    { "key": "paciente_otro_id", "value": "" },
-    { "key": "turno_agenda_id", "value": "" },
-    { "key": "turno_id_atender", "value": "" },
-    { "key": "turno_id_cancelar", "value": "" },
-    { "key": "turno_id_otro_paciente", "value": "" },
-    { "key": "historial_id", "value": "" },
-    { "key": "notificacion_id_cancelacion", "value": "" }
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_medico",
+      "value": ""
+    },
+    {
+      "key": "token_operador",
+      "value": ""
+    },
+    {
+      "key": "token_paciente",
+      "value": ""
+    },
+    {
+      "key": "sede_id",
+      "value": ""
+    },
+    {
+      "key": "especialidad_id",
+      "value": ""
+    },
+    {
+      "key": "cobertura_id",
+      "value": ""
+    },
+    {
+      "key": "agenda_id",
+      "value": ""
+    },
+    {
+      "key": "paciente_otro_id",
+      "value": ""
+    },
+    {
+      "key": "turno_agenda_id",
+      "value": ""
+    },
+    {
+      "key": "turno_id_atender",
+      "value": ""
+    },
+    {
+      "key": "turno_id_cancelar",
+      "value": ""
+    },
+    {
+      "key": "turno_id_otro_paciente",
+      "value": ""
+    },
+    {
+      "key": "historial_id",
+      "value": ""
+    },
+    {
+      "key": "notificacion_id_cancelacion",
+      "value": ""
+    },
+    {
+      "key": "fecha_prueba",
+      "value": ""
+    },
+    {
+      "key": "fecha_prueba2",
+      "value": ""
+    },
+    {
+      "key": "fecha_turnos",
+      "value": ""
+    },
+    {
+      "key": "fecha_hoy",
+      "value": ""
+    },
+    {
+      "key": "usuario_id",
+      "value": ""
+    },
+    {
+      "key": "dni_nuevo",
+      "value": ""
+    },
+    {
+      "key": "email_nuevo",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -29,7 +108,15 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": { "raw": "{{base_url}}/health", "host": ["{{base_url}}"], "path": ["health"] }
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
       }
     },
     {
@@ -37,7 +124,15 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": { "raw": "{{base_url}}/coberturas", "host": ["{{base_url}}"], "path": ["coberturas"] }
+        "url": {
+          "raw": "{{base_url}}/coberturas",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "coberturas"
+          ]
+        }
       }
     },
     {
@@ -49,9 +144,9 @@
             "exec": [
               "if (pm.response.code === 201) {",
               "  console.log('Usuario registrado correctamente');",
-              "  const data = pm.response.json();",
-              "  if (data && data.datos && data.datos.id) {",
-              "    pm.collectionVariables.set('paciente_otro_id', data.datos.id);",
+              "  const json = pm.response.json();",
+              "  if (json && json.datos && json.datos.id) {",
+              "    pm.collectionVariables.set('paciente_otro_id', json.datos.id);",
               "  }",
               "}"
             ]
@@ -60,12 +155,26 @@
       ],
       "request": {
         "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Perez\",\n  \"dni\": \"30111222\",\n  \"email\": \"juan@test.com\",\n  \"password\": \"123456\",\n  \"fecha_nacimiento\": \"1995-05-20\",\n  \"telefono\": \"3424000000\",\n  \"id_cobertura\": 1\n}"
         },
-        "url": { "raw": "{{base_url}}/auth/registro", "host": ["{{base_url}}"], "path": ["auth", "registro"] }
+        "url": {
+          "raw": "{{base_url}}/auth/registro",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "registro"
+          ]
+        }
       }
     },
     {
@@ -75,9 +184,9 @@
           "listen": "test",
           "script": {
             "exec": [
-              "const data = pm.response.json();",
-              "if (data && data.datos && data.datos.token) {",
-              "  pm.collectionVariables.set('token', data.datos.token);",
+              "const json = pm.response.json();",
+              "if (json && json.datos && json.datos.token) {",
+              "  pm.collectionVariables.set('token', json.datos.token);",
               "  console.log('Token guardado en variable {{token}}');",
               "}"
             ]
@@ -86,20 +195,48 @@
       ],
       "request": {
         "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"dni\": \"30111222\",\n  \"password\": \"123456\"\n}"
         },
-        "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
       }
     },
     {
       "name": "Perfil (protegido - verificarToken)",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-        "url": { "raw": "{{base_url}}/auth/perfil", "host": ["{{base_url}}"], "path": ["auth", "perfil"] }
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/auth/perfil",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "perfil"
+          ]
+        }
       }
     },
     {
@@ -107,15 +244,37 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": { "raw": "{{base_url}}/auth/perfil", "host": ["{{base_url}}"], "path": ["auth", "perfil"] }
+        "url": {
+          "raw": "{{base_url}}/auth/perfil",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "perfil"
+          ]
+        }
       }
     },
     {
-      "name": "Listar Usuarios (protegido - verificarRol administrador)",
+      "name": "Listar Usuarios con token de paciente (403 - solo administrador)",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-        "url": { "raw": "{{base_url}}/usuarios", "host": ["{{base_url}}"], "path": ["usuarios"] }
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/usuarios",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "usuarios"
+          ]
+        }
       }
     },
     {
@@ -128,9 +287,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && data.datos && data.datos.token) {",
-                  "  pm.collectionVariables.set('token_admin', data.datos.token);",
+                  "const json = pm.response.json();",
+                  "if (json && json.datos && json.datos.token) {",
+                  "  pm.collectionVariables.set('token_admin', json.datos.token);",
                   "  console.log('Token admin guardado en {{token_admin}}');",
                   "}"
                 ]
@@ -139,12 +298,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"dni\": \"18222333\",\n  \"password\": \"123456\"\n}"
             },
-            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
           }
         },
         {
@@ -154,9 +327,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && data.datos && data.datos.token) {",
-                  "  pm.collectionVariables.set('token_medico', data.datos.token);",
+                  "const json = pm.response.json();",
+                  "if (json && json.datos && json.datos.token) {",
+                  "  pm.collectionVariables.set('token_medico', json.datos.token);",
                   "  console.log('Token medico guardado en {{token_medico}}');",
                   "}"
                 ]
@@ -165,12 +338,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"dni\": \"20111222\",\n  \"password\": \"123456\"\n}"
             },
-            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
           }
         },
         {
@@ -180,9 +367,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && data.datos && data.datos.token) {",
-                  "  pm.collectionVariables.set('token_operador', data.datos.token);",
+                  "const json = pm.response.json();",
+                  "if (json && json.datos && json.datos.token) {",
+                  "  pm.collectionVariables.set('token_operador', json.datos.token);",
                   "  console.log('Token operador guardado en {{token_operador}}');",
                   "}"
                 ]
@@ -191,12 +378,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"dni\": \"15200548\",\n  \"password\": \"123456\"\n}"
             },
-            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
           }
         },
         {
@@ -206,9 +407,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && data.datos && data.datos.token) {",
-                  "  pm.collectionVariables.set('token_paciente', data.datos.token);",
+                  "const json = pm.response.json();",
+                  "if (json && json.datos && json.datos.token) {",
+                  "  pm.collectionVariables.set('token_paciente', json.datos.token);",
                   "  console.log('Token paciente guardado en {{token_paciente}}');",
                   "}"
                 ]
@@ -217,18 +418,32 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"dni\": \"36000960\",\n  \"password\": \"123456\"\n}"
             },
-            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
           }
         }
       ]
     },
     {
-      "name": "Sedes (solo administrador)",
+      "name": "Sedes (lectura: cualquier sesion; alta, modificacion y baja: solo administrador)",
       "item": [
         {
           "name": "Crear Sede (Admin)",
@@ -237,9 +452,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && data.datos && data.datos.id) {",
-                  "  pm.collectionVariables.set('sede_id', data.datos.id);",
+                  "const json = pm.response.json();",
+                  "if (json && json.datos && json.datos.id) {",
+                  "  pm.collectionVariables.set('sede_id', json.datos.id);",
                   "}"
                 ]
               }
@@ -248,26 +463,53 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Sede Sur\",\n  \"direccion\": \"Av. Sur 789\",\n  \"telefono\": \"3424000003\"\n}"
             },
-            "url": { "raw": "{{base_url}}/sedes", "host": ["{{base_url}}"], "path": ["sedes"] }
+            "url": {
+              "raw": "{{base_url}}/sedes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sedes"
+              ]
+            }
           }
         },
         {
           "name": "Crear Sede sin token (401)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Sede Sur\",\n  \"direccion\": \"Av. Sur 789\",\n  \"telefono\": \"3424000003\"\n}"
             },
-            "url": { "raw": "{{base_url}}/sedes", "host": ["{{base_url}}"], "path": ["sedes"] }
+            "url": {
+              "raw": "{{base_url}}/sedes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sedes"
+              ]
+            }
           }
         },
         {
@@ -275,22 +517,49 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_operador}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_operador}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Sede Sur\",\n  \"direccion\": \"Av. Sur 789\",\n  \"telefono\": \"3424000003\"\n}"
             },
-            "url": { "raw": "{{base_url}}/sedes", "host": ["{{base_url}}"], "path": ["sedes"] }
+            "url": {
+              "raw": "{{base_url}}/sedes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sedes"
+              ]
+            }
           }
         },
         {
           "name": "Listar Sedes (Admin)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
-            "url": { "raw": "{{base_url}}/sedes", "host": ["{{base_url}}"], "path": ["sedes"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sedes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sedes"
+              ]
+            }
           }
         },
         {
@@ -298,22 +567,51 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Sede Sur Renombrada\",\n  \"direccion\": \"Av. Sur 999\",\n  \"telefono\": \"3424000004\"\n}"
             },
-            "url": { "raw": "{{base_url}}/sedes/{{sede_id}}", "host": ["{{base_url}}"], "path": ["sedes", "{{sede_id}}"] }
+            "url": {
+              "raw": "{{base_url}}/sedes/{{sede_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sedes",
+                "{{sede_id}}"
+              ]
+            }
           }
         },
         {
           "name": "Eliminar Sede con dependencias (409)",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
-            "url": { "raw": "{{base_url}}/sedes/1", "host": ["{{base_url}}"], "path": ["sedes", "1"] },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sedes/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sedes",
+                "1"
+              ]
+            },
             "description": "La sede 1 (seed) tiene medicos/operadores y agenda asociada, debe responder 409 en vez de 500."
           }
         },
@@ -321,14 +619,28 @@
           "name": "Eliminar Sede (Admin)",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
-            "url": { "raw": "{{base_url}}/sedes/{{sede_id}}", "host": ["{{base_url}}"], "path": ["sedes", "{{sede_id}}"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sedes/{{sede_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sedes",
+                "{{sede_id}}"
+              ]
+            }
           }
         }
       ]
     },
     {
-      "name": "Especialidades (solo administrador)",
+      "name": "Especialidades (lectura: cualquier sesion; alta, modificacion y baja: solo administrador)",
       "item": [
         {
           "name": "Crear Especialidad (Admin)",
@@ -337,9 +649,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && data.datos && data.datos.id) {",
-                  "  pm.collectionVariables.set('especialidad_id', data.datos.id);",
+                  "const json = pm.response.json();",
+                  "if (json && json.datos && json.datos.id) {",
+                  "  pm.collectionVariables.set('especialidad_id', json.datos.id);",
                   "}"
                 ]
               }
@@ -348,26 +660,53 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"descripcion\": \"Cardiologia\"\n}"
             },
-            "url": { "raw": "{{base_url}}/especialidades", "host": ["{{base_url}}"], "path": ["especialidades"] }
+            "url": {
+              "raw": "{{base_url}}/especialidades",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "especialidades"
+              ]
+            }
           }
         },
         {
           "name": "Crear Especialidad sin token (401)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"descripcion\": \"Cardiologia\"\n}"
             },
-            "url": { "raw": "{{base_url}}/especialidades", "host": ["{{base_url}}"], "path": ["especialidades"] }
+            "url": {
+              "raw": "{{base_url}}/especialidades",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "especialidades"
+              ]
+            }
           }
         },
         {
@@ -375,22 +714,49 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_medico}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"descripcion\": \"Cardiologia\"\n}"
             },
-            "url": { "raw": "{{base_url}}/especialidades", "host": ["{{base_url}}"], "path": ["especialidades"] }
+            "url": {
+              "raw": "{{base_url}}/especialidades",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "especialidades"
+              ]
+            }
           }
         },
         {
           "name": "Listar Especialidades (Admin)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
-            "url": { "raw": "{{base_url}}/especialidades", "host": ["{{base_url}}"], "path": ["especialidades"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/especialidades",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "especialidades"
+              ]
+            }
           }
         },
         {
@@ -398,22 +764,51 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"descripcion\": \"Cardiologia Infantil\"\n}"
             },
-            "url": { "raw": "{{base_url}}/especialidades/{{especialidad_id}}", "host": ["{{base_url}}"], "path": ["especialidades", "{{especialidad_id}}"] }
+            "url": {
+              "raw": "{{base_url}}/especialidades/{{especialidad_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "especialidades",
+                "{{especialidad_id}}"
+              ]
+            }
           }
         },
         {
           "name": "Eliminar Especialidad con medicos asociados (409)",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
-            "url": { "raw": "{{base_url}}/especialidades/1", "host": ["{{base_url}}"], "path": ["especialidades", "1"] },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/especialidades/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "especialidades",
+                "1"
+              ]
+            },
             "description": "La especialidad 1 (Traumatologia, seed) tiene un medico asociado en medico_especialidad, debe responder 409."
           }
         },
@@ -421,8 +816,22 @@
           "name": "Eliminar Especialidad (Admin)",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
-            "url": { "raw": "{{base_url}}/especialidades/{{especialidad_id}}", "host": ["{{base_url}}"], "path": ["especialidades", "{{especialidad_id}}"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/especialidades/{{especialidad_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "especialidades",
+                "{{especialidad_id}}"
+              ]
+            }
           }
         }
       ]
@@ -437,9 +846,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && data.datos && data.datos.id) {",
-                  "  pm.collectionVariables.set('cobertura_id', data.datos.id);",
+                  "const json = pm.response.json();",
+                  "if (json && json.datos && json.datos.id) {",
+                  "  pm.collectionVariables.set('cobertura_id', json.datos.id);",
                   "}"
                 ]
               }
@@ -448,26 +857,53 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Particular\"\n}"
             },
-            "url": { "raw": "{{base_url}}/coberturas", "host": ["{{base_url}}"], "path": ["coberturas"] }
+            "url": {
+              "raw": "{{base_url}}/coberturas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "coberturas"
+              ]
+            }
           }
         },
         {
           "name": "Crear Cobertura sin token (401)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Particular\"\n}"
             },
-            "url": { "raw": "{{base_url}}/coberturas", "host": ["{{base_url}}"], "path": ["coberturas"] }
+            "url": {
+              "raw": "{{base_url}}/coberturas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "coberturas"
+              ]
+            }
           }
         },
         {
@@ -475,14 +911,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Particular\"\n}"
             },
-            "url": { "raw": "{{base_url}}/coberturas", "host": ["{{base_url}}"], "path": ["coberturas"] }
+            "url": {
+              "raw": "{{base_url}}/coberturas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "coberturas"
+              ]
+            }
           }
         },
         {
@@ -490,22 +940,51 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Particular Plus\"\n}"
             },
-            "url": { "raw": "{{base_url}}/coberturas/{{cobertura_id}}", "host": ["{{base_url}}"], "path": ["coberturas", "{{cobertura_id}}"] }
+            "url": {
+              "raw": "{{base_url}}/coberturas/{{cobertura_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "coberturas",
+                "{{cobertura_id}}"
+              ]
+            }
           }
         },
         {
           "name": "Eliminar Cobertura con usuarios asociados (409)",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
-            "url": { "raw": "{{base_url}}/coberturas/1", "host": ["{{base_url}}"], "path": ["coberturas", "1"] },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/coberturas/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "coberturas",
+                "1"
+              ]
+            },
             "description": "La cobertura 1 (Jerarquicos, seed) tiene un paciente asociado, debe responder 409."
           }
         },
@@ -513,25 +992,39 @@
           "name": "Eliminar Cobertura (Admin)",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
-            "url": { "raw": "{{base_url}}/coberturas/{{cobertura_id}}", "host": ["{{base_url}}"], "path": ["coberturas", "{{cobertura_id}}"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/coberturas/{{cobertura_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "coberturas",
+                "{{cobertura_id}}"
+              ]
+            }
           }
         }
       ]
     },
     {
-      "name": "Agenda Medica (medico: propia agenda / operador: cualquiera)",
+      "name": "Agenda Medica (medico: propia agenda / operador: solo su sede)",
       "item": [
         {
-          "name": "Crear Agenda (Operador, cualquier medico/sede)",
+          "name": "Crear Agenda (Operador, en su sede)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && data.datos && data.datos.id) {",
-                  "  pm.collectionVariables.set('agenda_id', data.datos.id);",
+                  "const json = pm.response.json();",
+                  "if (json && json.datos && json.datos.id) {",
+                  "  pm.collectionVariables.set('agenda_id', json.datos.id);",
                   "}"
                 ]
               }
@@ -540,14 +1033,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_operador}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_operador}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"13:00\",\n  \"fecha\": \"2026-09-15\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+              "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"13:00\",\n  \"fecha\": \"{{fecha_prueba}}\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
             },
-            "url": { "raw": "{{base_url}}/agenda", "host": ["{{base_url}}"], "path": ["agenda"] }
+            "url": {
+              "raw": "{{base_url}}/agenda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda"
+              ]
+            }
           }
         },
         {
@@ -555,14 +1062,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_medico}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hora_entrada\": \"14:00\",\n  \"hora_salida\": \"18:00\",\n  \"fecha\": \"2026-09-15\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+              "raw": "{\n  \"hora_entrada\": \"14:00\",\n  \"hora_salida\": \"18:00\",\n  \"fecha\": \"{{fecha_prueba}}\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
             },
-            "url": { "raw": "{{base_url}}/agenda", "host": ["{{base_url}}"], "path": ["agenda"] }
+            "url": {
+              "raw": "{{base_url}}/agenda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda"
+              ]
+            }
           }
         },
         {
@@ -570,26 +1091,53 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_medico}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hora_entrada\": \"14:00\",\n  \"hora_salida\": \"18:00\",\n  \"fecha\": \"2026-09-15\",\n  \"id_medico\": 99,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+              "raw": "{\n  \"hora_entrada\": \"14:00\",\n  \"hora_salida\": \"18:00\",\n  \"fecha\": \"{{fecha_prueba}}\",\n  \"id_medico\": 99,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
             },
-            "url": { "raw": "{{base_url}}/agenda", "host": ["{{base_url}}"], "path": ["agenda"] }
+            "url": {
+              "raw": "{{base_url}}/agenda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda"
+              ]
+            }
           }
         },
         {
           "name": "Crear Agenda sin token (401)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"13:00\",\n  \"fecha\": \"2026-09-15\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+              "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"13:00\",\n  \"fecha\": \"{{fecha_prueba}}\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
             },
-            "url": { "raw": "{{base_url}}/agenda", "host": ["{{base_url}}"], "path": ["agenda"] }
+            "url": {
+              "raw": "{{base_url}}/agenda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda"
+              ]
+            }
           }
         },
         {
@@ -597,14 +1145,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"13:00\",\n  \"fecha\": \"2026-09-15\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+              "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"13:00\",\n  \"fecha\": \"{{fecha_prueba}}\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
             },
-            "url": { "raw": "{{base_url}}/agenda", "host": ["{{base_url}}"], "path": ["agenda"] }
+            "url": {
+              "raw": "{{base_url}}/agenda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda"
+              ]
+            }
           }
         },
         {
@@ -612,34 +1174,75 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_operador}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_operador}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"13:00\",\n  \"fecha\": \"2026-09-15\",\n  \"id_medico\": 500,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+              "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"13:00\",\n  \"fecha\": \"{{fecha_prueba}}\",\n  \"id_medico\": 500,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
             },
-            "url": { "raw": "{{base_url}}/agenda", "host": ["{{base_url}}"], "path": ["agenda"] }
+            "url": {
+              "raw": "{{base_url}}/agenda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda"
+              ]
+            }
           }
         },
         {
           "name": "Listar Agenda (Medico - forzado a su propio id_medico)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
-            "url": { "raw": "{{base_url}}/agenda", "host": ["{{base_url}}"], "path": ["agenda"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_medico}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/agenda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda"
+              ]
+            }
           }
         },
         {
           "name": "Listar Agenda (Operador, filtrada por sede)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_operador}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_operador}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/agenda?id_sede=1",
-              "host": ["{{base_url}}"],
-              "path": ["agenda"],
-              "query": [{ "key": "id_sede", "value": "1" }]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda"
+              ],
+              "query": [
+                {
+                  "key": "id_sede",
+                  "value": "1"
+                }
+              ]
             }
           }
         },
@@ -648,7 +1251,15 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{base_url}}/agenda", "host": ["{{base_url}}"], "path": ["agenda"] }
+            "url": {
+              "raw": "{{base_url}}/agenda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda"
+              ]
+            }
           }
         },
         {
@@ -656,14 +1267,29 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_operador}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_operador}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hora_entrada\": \"10:00\",\n  \"hora_salida\": \"14:00\",\n  \"fecha\": \"2026-09-16\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+              "raw": "{\n  \"hora_entrada\": \"10:00\",\n  \"hora_salida\": \"14:00\",\n  \"fecha\": \"{{fecha_prueba2}}\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
             },
-            "url": { "raw": "{{base_url}}/agenda/{{agenda_id}}", "host": ["{{base_url}}"], "path": ["agenda", "{{agenda_id}}"] }
+            "url": {
+              "raw": "{{base_url}}/agenda/{{agenda_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda",
+                "{{agenda_id}}"
+              ]
+            }
           }
         },
         {
@@ -671,22 +1297,51 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_medico}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hora_entrada\": \"10:00\",\n  \"hora_salida\": \"14:00\",\n  \"fecha\": \"2026-09-16\",\n  \"id_medico\": 99,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+              "raw": "{\n  \"hora_entrada\": \"10:00\",\n  \"hora_salida\": \"14:00\",\n  \"fecha\": \"{{fecha_prueba2}}\",\n  \"id_medico\": 99,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
             },
-            "url": { "raw": "{{base_url}}/agenda/{{agenda_id}}", "host": ["{{base_url}}"], "path": ["agenda", "{{agenda_id}}"] }
+            "url": {
+              "raw": "{{base_url}}/agenda/{{agenda_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda",
+                "{{agenda_id}}"
+              ]
+            }
           }
         },
         {
           "name": "Eliminar Agenda con turnos asociados (409)",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_operador}}" }],
-            "url": { "raw": "{{base_url}}/agenda/2", "host": ["{{base_url}}"], "path": ["agenda", "2"] },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_operador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/agenda/2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda",
+                "2"
+              ]
+            },
             "description": "El registro de agenda 2 (seed) tiene un turno asociado, debe responder 409."
           }
         },
@@ -694,8 +1349,22 @@
           "name": "Eliminar Agenda (Operador)",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_operador}}" }],
-            "url": { "raw": "{{base_url}}/agenda/{{agenda_id}}", "host": ["{{base_url}}"], "path": ["agenda", "{{agenda_id}}"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_operador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/agenda/{{agenda_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda",
+                "{{agenda_id}}"
+              ]
+            }
           }
         }
       ]
@@ -710,9 +1379,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && data.datos && data.datos.id) {",
-                  "  pm.collectionVariables.set('turno_agenda_id', data.datos.id);",
+                  "const json = pm.response.json();",
+                  "if (json && json.datos && json.datos.id) {",
+                  "  pm.collectionVariables.set('turno_agenda_id', json.datos.id);",
                   "}"
                 ]
               }
@@ -721,14 +1390,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_operador}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_operador}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"12:00\",\n  \"fecha\": \"2026-10-01\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+              "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"12:00\",\n  \"fecha\": \"{{fecha_turnos}}\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
             },
-            "url": { "raw": "{{base_url}}/agenda", "host": ["{{base_url}}"], "path": ["agenda"] }
+            "url": {
+              "raw": "{{base_url}}/agenda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agenda"
+              ]
+            }
           }
         },
         {
@@ -736,14 +1419,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"20:00\",\n  \"nota\": \"Fuera de horario\"\n}"
             },
-            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] },
+            "url": {
+              "raw": "{{base_url}}/turnos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos"
+              ]
+            },
             "description": "La agenda de prueba va de 09:00 a 12:00; pedir las 20:00 debe responder 400, no 500."
           }
         },
@@ -754,9 +1451,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && data.datos && data.datos.id) {",
-                  "  pm.collectionVariables.set('turno_id_atender', data.datos.id);",
+                  "const json = pm.response.json();",
+                  "if (json && json.datos && json.datos.id) {",
+                  "  pm.collectionVariables.set('turno_id_atender', json.datos.id);",
                   "}"
                 ]
               }
@@ -765,14 +1462,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"09:30\",\n  \"nota\": \"Consulta de rutina\"\n}"
             },
-            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] },
+            "url": {
+              "raw": "{{base_url}}/turnos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos"
+              ]
+            },
             "description": "Turno A: se usa mas adelante para el caso de atencion + historial clinico."
           }
         },
@@ -781,14 +1492,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_operador}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_operador}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"09:30\",\n  \"nota\": \"Otro paciente, mismo horario\",\n  \"id_paciente\": 2\n}"
             },
-            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] },
+            "url": {
+              "raw": "{{base_url}}/turnos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos"
+              ]
+            },
             "description": "El slot 09:30 de esa agenda ya tiene un turno confirmado (Turno A), debe responder 409."
           }
         },
@@ -796,12 +1521,25 @@
           "name": "Crear Turno sin token (401)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"10:00\",\n  \"nota\": \"Sin token\"\n}"
             },
-            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] }
+            "url": {
+              "raw": "{{base_url}}/turnos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos"
+              ]
+            }
           }
         },
         {
@@ -809,14 +1547,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"10:00\",\n  \"nota\": \"Rol invalido\"\n}"
             },
-            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] }
+            "url": {
+              "raw": "{{base_url}}/turnos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos"
+              ]
+            }
           }
         },
         {
@@ -826,9 +1578,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && data.datos && data.datos.id) {",
-                  "  pm.collectionVariables.set('turno_id_cancelar', data.datos.id);",
+                  "const json = pm.response.json();",
+                  "if (json && json.datos && json.datos.id) {",
+                  "  pm.collectionVariables.set('turno_id_cancelar', json.datos.id);",
                   "}"
                 ]
               }
@@ -837,14 +1589,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"10:00\",\n  \"nota\": \"Turno para cancelar\"\n}"
             },
-            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] },
+            "url": {
+              "raw": "{{base_url}}/turnos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos"
+              ]
+            },
             "description": "Turno B: se usa mas adelante para el caso de cancelacion + notificacion."
           }
         },
@@ -855,9 +1621,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && data.datos && data.datos.id) {",
-                  "  pm.collectionVariables.set('turno_id_otro_paciente', data.datos.id);",
+                  "const json = pm.response.json();",
+                  "if (json && json.datos && json.datos.id) {",
+                  "  pm.collectionVariables.set('turno_id_otro_paciente', json.datos.id);",
                   "}"
                 ]
               }
@@ -866,14 +1632,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"id_agenda\": {{turno_agenda_id}},\n  \"hora\": \"10:30\",\n  \"nota\": \"Turno de otro paciente\"\n}"
             },
-            "url": { "raw": "{{base_url}}/turnos", "host": ["{{base_url}}"], "path": ["turnos"] },
+            "url": {
+              "raw": "{{base_url}}/turnos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos"
+              ]
+            },
             "description": "Usa {{token}}, el paciente registrado dinamicamente en 'Registro de Paciente' + 'Login' (DNI 30111222). Turno C queda en manos de OTRO paciente distinto de token_paciente, para poder probar el 403 de 'cancelar turno ajeno'."
           }
         },
@@ -881,20 +1661,49 @@
           "name": "Listar Mis Turnos (Paciente)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
-            "url": { "raw": "{{base_url}}/turnos/mios", "host": ["{{base_url}}"], "path": ["turnos", "mios"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/turnos/mios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos",
+                "mios"
+              ]
+            }
           }
         },
         {
           "name": "Listar Turnos del Medico por fecha",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_medico}}"
+              }
+            ],
             "url": {
-              "raw": "{{base_url}}/turnos/medico?fecha=2026-10-01",
-              "host": ["{{base_url}}"],
-              "path": ["turnos", "medico"],
-              "query": [{ "key": "fecha", "value": "2026-10-01" }]
+              "raw": "{{base_url}}/turnos/medico?fecha={{fecha_turnos}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos",
+                "medico"
+              ],
+              "query": [
+                {
+                  "key": "fecha",
+                  "value": "{{fecha_turnos}}"
+                }
+              ]
             }
           }
         },
@@ -902,12 +1711,27 @@
           "name": "Listar Turnos de la Sede por fecha",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_operador}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_operador}}"
+              }
+            ],
             "url": {
-              "raw": "{{base_url}}/turnos/sede?fecha=2026-10-01",
-              "host": ["{{base_url}}"],
-              "path": ["turnos", "sede"],
-              "query": [{ "key": "fecha", "value": "2026-10-01" }]
+              "raw": "{{base_url}}/turnos/sede?fecha={{fecha_turnos}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos",
+                "sede"
+              ],
+              "query": [
+                {
+                  "key": "fecha",
+                  "value": "{{fecha_turnos}}"
+                }
+              ]
             }
           }
         },
@@ -915,11 +1739,22 @@
           "name": "Cancelar Turno ajeno (Paciente) (403)",
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/turnos/{{turno_id_otro_paciente}}/cancelar",
-              "host": ["{{base_url}}"],
-              "path": ["turnos", "{{turno_id_otro_paciente}}", "cancelar"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos",
+                "{{turno_id_otro_paciente}}",
+                "cancelar"
+              ]
             },
             "description": "El Turno C pertenece al paciente registrado dinamicamente, no a token_paciente."
           }
@@ -928,11 +1763,22 @@
           "name": "CASO: Cancelar Turno propio (Paciente) -> genera notificacion",
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/turnos/{{turno_id_cancelar}}/cancelar",
-              "host": ["{{base_url}}"],
-              "path": ["turnos", "{{turno_id_cancelar}}", "cancelar"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos",
+                "{{turno_id_cancelar}}",
+                "cancelar"
+              ]
             },
             "description": "Cancela el Turno B. Verificar con la siguiente request (Listar Notificaciones) que se generó la notificación 'turno_cancelado'."
           }
@@ -944,9 +1790,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && Array.isArray(data.datos)) {",
-                  "  const notif = data.datos.find(n => n.tipo === 'turno_cancelado');",
+                  "const json = pm.response.json();",
+                  "if (json && Array.isArray(json.datos)) {",
+                  "  const notif = json.datos.find(n => n.tipo === 'turno_cancelado');",
                   "  if (notif) {",
                   "    pm.collectionVariables.set('notificacion_id_cancelacion', notif.id);",
                   "    console.log('Notificacion de cancelacion encontrada, id=' + notif.id);",
@@ -960,8 +1806,21 @@
           ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
-            "url": { "raw": "{{base_url}}/notificaciones", "host": ["{{base_url}}"], "path": ["notificaciones"] },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notificaciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notificaciones"
+              ]
+            },
             "description": "Debe aparecer, de primera (ORDER BY fecha DESC), una notificación tipo 'turno_cancelado' generada por la request anterior."
           }
         },
@@ -969,11 +1828,22 @@
           "name": "Cancelar Turno ya cancelado (409)",
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/turnos/{{turno_id_cancelar}}/cancelar",
-              "host": ["{{base_url}}"],
-              "path": ["turnos", "{{turno_id_cancelar}}", "cancelar"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos",
+                "{{turno_id_cancelar}}",
+                "cancelar"
+              ]
             },
             "description": "El Turno B ya fue cancelado en la request anterior, no se permite doble cambio de estado."
           }
@@ -982,11 +1852,22 @@
           "name": "Marcar Notificacion como leida (Paciente)",
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/notificaciones/{{notificacion_id_cancelacion}}/leida",
-              "host": ["{{base_url}}"],
-              "path": ["notificaciones", "{{notificacion_id_cancelacion}}", "leida"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notificaciones",
+                "{{notificacion_id_cancelacion}}",
+                "leida"
+              ]
             }
           }
         },
@@ -994,8 +1875,23 @@
           "name": "Marcar Notificacion ajena como leida (403)",
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
-            "url": { "raw": "{{base_url}}/notificaciones/2/leida", "host": ["{{base_url}}"], "path": ["notificaciones", "2", "leida"] },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notificaciones/2/leida",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notificaciones",
+                "2",
+                "leida"
+              ]
+            },
             "description": "La notificación 2 (seed) pertenece al usuario 3 (medico), no a token_paciente."
           }
         },
@@ -1003,19 +1899,45 @@
           "name": "Marcar Notificacion inexistente (404)",
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
-            "url": { "raw": "{{base_url}}/notificaciones/999999/leida", "host": ["{{base_url}}"], "path": ["notificaciones", "999999", "leida"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notificaciones/999999/leida",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notificaciones",
+                "999999",
+                "leida"
+              ]
+            }
           }
         },
         {
           "name": "Atender Turno con rol operador (403)",
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_operador}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_operador}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/turnos/{{turno_id_atender}}/atender",
-              "host": ["{{base_url}}"],
-              "path": ["turnos", "{{turno_id_atender}}", "atender"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos",
+                "{{turno_id_atender}}",
+                "atender"
+              ]
             }
           }
         },
@@ -1023,11 +1945,22 @@
           "name": "CASO: Atender Turno (Medico, propia agenda)",
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_medico}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/turnos/{{turno_id_atender}}/atender",
-              "host": ["{{base_url}}"],
-              "path": ["turnos", "{{turno_id_atender}}", "atender"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos",
+                "{{turno_id_atender}}",
+                "atender"
+              ]
             },
             "description": "Atiende el Turno A. Genera notificación 'turno_atendido' y deja el turno listo para cargarle historial clínico."
           }
@@ -1036,11 +1969,22 @@
           "name": "Atender Turno ya atendido (409)",
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_medico}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/turnos/{{turno_id_atender}}/atender",
-              "host": ["{{base_url}}"],
-              "path": ["turnos", "{{turno_id_atender}}", "atender"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "turnos",
+                "{{turno_id_atender}}",
+                "atender"
+              ]
             }
           }
         },
@@ -1049,14 +1993,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"id_turno\": {{turno_id_atender}},\n  \"diagnostico\": \"No debería poder cargar esto\"\n}"
             },
-            "url": { "raw": "{{base_url}}/historial", "host": ["{{base_url}}"], "path": ["historial"] }
+            "url": {
+              "raw": "{{base_url}}/historial",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "historial"
+              ]
+            }
           }
         },
         {
@@ -1064,14 +2022,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_medico}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"id_turno\": {{turno_id_cancelar}},\n  \"diagnostico\": \"No debería poder cargarse\"\n}"
             },
-            "url": { "raw": "{{base_url}}/historial", "host": ["{{base_url}}"], "path": ["historial"] },
+            "url": {
+              "raw": "{{base_url}}/historial",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "historial"
+              ]
+            },
             "description": "El Turno B está 'cancelado', no 'atendido': debe responder 400."
           }
         },
@@ -1082,9 +2054,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const data = pm.response.json();",
-                  "if (data && data.datos && data.datos.id) {",
-                  "  pm.collectionVariables.set('historial_id', data.datos.id);",
+                  "const json = pm.response.json();",
+                  "if (json && json.datos && json.datos.id) {",
+                  "  pm.collectionVariables.set('historial_id', json.datos.id);",
                   "}"
                 ]
               }
@@ -1093,14 +2065,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_medico}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"id_turno\": {{turno_id_atender}},\n  \"diagnostico\": \"Esguince de tobillo grado I\",\n  \"tratamiento\": \"Reposo y antiinflamatorios\",\n  \"observaciones\": \"Control en 15 dias\"\n}"
             },
-            "url": { "raw": "{{base_url}}/historial", "host": ["{{base_url}}"], "path": ["historial"] },
+            "url": {
+              "raw": "{{base_url}}/historial",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "historial"
+              ]
+            },
             "description": "Carga el historial del Turno A, ya atendido por el mismo médico."
           }
         },
@@ -1108,11 +2094,22 @@
           "name": "CASO: Consultar Historial del Paciente (Paciente propio) - debe aparecer el registro cargado",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/historial/paciente/2",
-              "host": ["{{base_url}}"],
-              "path": ["historial", "paciente", "2"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "historial",
+                "paciente",
+                "2"
+              ]
             },
             "description": "token_paciente es el usuario 2 (Friggeri Franco). Debe listar el registro creado en la request anterior."
           }
@@ -1121,11 +2118,22 @@
           "name": "Consultar Historial de otro paciente (Paciente) (403)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_paciente}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/historial/paciente/{{paciente_otro_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["historial", "paciente", "{{paciente_otro_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "historial",
+                "paciente",
+                "{{paciente_otro_id}}"
+              ]
             }
           }
         },
@@ -1133,11 +2141,22 @@
           "name": "Consultar Historial (Medico) - solo sus propios registros",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_medico}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/historial/paciente/2",
-              "host": ["{{base_url}}"],
-              "path": ["historial", "paciente", "2"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "historial",
+                "paciente",
+                "2"
+              ]
             }
           }
         },
@@ -1145,15 +2164,2323 @@
           "name": "Consultar Historial con rol operador (403)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_operador}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_operador}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/historial/paciente/2",
-              "host": ["{{base_url}}"],
-              "path": ["historial", "paciente", "2"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "historial",
+                "paciente",
+                "2"
+              ]
             }
           }
         }
       ]
+    },
+    {
+      "name": "Semana 4 - Endpoints para el frontend",
+      "item": [
+        {
+          "name": "Semana 4 - Perfil y contrasena (cualquier sesion)",
+          "item": [
+            {
+              "name": "Actualizar perfil (Paciente: email, telefono y cobertura)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/perfil",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "perfil"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"asdas@gaasds.com\",\n  \"telefono\": \"342545555\",\n  \"id_cobertura\": 1\n}"
+                }
+              }
+            },
+            {
+              "name": "Actualizar perfil sin id_cobertura (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/perfil",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "perfil"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"asdas@gaasds.com\",\n  \"telefono\": \"342545555\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Actualizar perfil con email de otro usuario (409)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 409', () => pm.response.to.have.status(409));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/perfil",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "perfil"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"jperez@gmail.com\",\n  \"telefono\": \"342545555\",\n  \"id_cobertura\": 1\n}"
+                }
+              }
+            },
+            {
+              "name": "Actualizar perfil con cobertura inexistente (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/perfil",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "perfil"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"asdas@gaasds.com\",\n  \"telefono\": \"342545555\",\n  \"id_cobertura\": 99999\n}"
+                }
+              }
+            },
+            {
+              "name": "Actualizar perfil sin token (401)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/perfil",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "perfil"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"asdas@gaasds.com\",\n  \"id_cobertura\": 1\n}"
+                }
+              }
+            },
+            {
+              "name": "Cambiar contrasena con confirmacion distinta (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "password"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"passwordActual\": \"123456\",\n  \"passwordNueva\": \"nueva1234\",\n  \"confirmarPassword\": \"otra12345\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Cambiar contrasena con nueva muy corta (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "password"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"passwordActual\": \"123456\",\n  \"passwordNueva\": \"abc\",\n  \"confirmarPassword\": \"abc\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Cambiar contrasena con la actual incorrecta (401)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "password"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"passwordActual\": \"incorrecta1\",\n  \"passwordNueva\": \"nueva1234\",\n  \"confirmarPassword\": \"nueva1234\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Cambiar contrasena sin token (401)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "password"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"passwordActual\": \"123456\",\n  \"passwordNueva\": \"nueva1234\",\n  \"confirmarPassword\": \"nueva1234\"\n}"
+                }
+              }
+            }
+          ],
+          "description": "El caso exitoso de cambio de contrasena no se incluye a proposito: la nueva contrasena exige 8 caracteres y dejaria a los usuarios semilla (123456) sin poder volver a iniciar sesion."
+        },
+        {
+          "name": "Semana 4 - Medicos (cualquier sesion)",
+          "item": [
+            {
+              "name": "Listar Medicos (Paciente)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('datos es un arreglo', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/medicos",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "medicos"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar Medicos filtrados por especialidad y sede (Paciente)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('datos es un arreglo', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/medicos?id_especialidad=1&id_sede=1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "medicos"
+                  ],
+                  "query": [
+                    {
+                      "key": "id_especialidad",
+                      "value": "1"
+                    },
+                    {
+                      "key": "id_sede",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar Medicos (Operador)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('datos es un arreglo', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_operador}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/medicos",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "medicos"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar Medicos sin token (401)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/medicos",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "medicos"
+                  ]
+                }
+              }
+            }
+          ],
+          "description": "Devuelve nombre, apellido y especialidades de cada medico, sin otros datos personales. Filtros opcionales: id_especialidad e id_sede."
+        },
+        {
+          "name": "Semana 4 - Disponibilidad (paciente y operador)",
+          "item": [
+            {
+              "name": "Fechas con agenda de un medico (Paciente)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('datos es un arreglo', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/disponibilidad/fechas?id_medico=3&id_especialidad=1&id_sede=1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "disponibilidad",
+                    "fechas"
+                  ],
+                  "query": [
+                    {
+                      "key": "id_medico",
+                      "value": "3"
+                    },
+                    {
+                      "key": "id_especialidad",
+                      "value": "1"
+                    },
+                    {
+                      "key": "id_sede",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Fechas con agenda de un medico (Operador)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('datos es un arreglo', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_operador}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/disponibilidad/fechas?id_medico=3&id_especialidad=1&id_sede=1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "disponibilidad",
+                    "fechas"
+                  ],
+                  "query": [
+                    {
+                      "key": "id_medico",
+                      "value": "3"
+                    },
+                    {
+                      "key": "id_especialidad",
+                      "value": "1"
+                    },
+                    {
+                      "key": "id_sede",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Fechas sin parametros obligatorios (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/disponibilidad/fechas",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "disponibilidad",
+                    "fechas"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Fechas con rol medico (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_medico}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/disponibilidad/fechas?id_medico=3&id_especialidad=1&id_sede=1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "disponibilidad",
+                    "fechas"
+                  ],
+                  "query": [
+                    {
+                      "key": "id_medico",
+                      "value": "3"
+                    },
+                    {
+                      "key": "id_especialidad",
+                      "value": "1"
+                    },
+                    {
+                      "key": "id_sede",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Fechas sin token (401)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/disponibilidad/fechas?id_medico=3&id_especialidad=1&id_sede=1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "disponibilidad",
+                    "fechas"
+                  ],
+                  "query": [
+                    {
+                      "key": "id_medico",
+                      "value": "3"
+                    },
+                    {
+                      "key": "id_especialidad",
+                      "value": "1"
+                    },
+                    {
+                      "key": "id_sede",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Horarios libres de un medico en una fecha (Paciente)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('datos es un arreglo', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/disponibilidad/horarios?id_medico=3&fecha={{fecha_turnos}}&id_especialidad=1&id_sede=1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "disponibilidad",
+                    "horarios"
+                  ],
+                  "query": [
+                    {
+                      "key": "id_medico",
+                      "value": "3"
+                    },
+                    {
+                      "key": "fecha",
+                      "value": "{{fecha_turnos}}"
+                    },
+                    {
+                      "key": "id_especialidad",
+                      "value": "1"
+                    },
+                    {
+                      "key": "id_sede",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Horarios sin fecha (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/disponibilidad/horarios?id_medico=3&id_especialidad=1&id_sede=1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "disponibilidad",
+                    "horarios"
+                  ],
+                  "query": [
+                    {
+                      "key": "id_medico",
+                      "value": "3"
+                    },
+                    {
+                      "key": "id_especialidad",
+                      "value": "1"
+                    },
+                    {
+                      "key": "id_sede",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Horarios con rol administrador (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/disponibilidad/horarios?id_medico=3&fecha={{fecha_turnos}}&id_especialidad=1&id_sede=1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "disponibilidad",
+                    "horarios"
+                  ],
+                  "query": [
+                    {
+                      "key": "id_medico",
+                      "value": "3"
+                    },
+                    {
+                      "key": "fecha",
+                      "value": "{{fecha_turnos}}"
+                    },
+                    {
+                      "key": "id_especialidad",
+                      "value": "1"
+                    },
+                    {
+                      "key": "id_sede",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "description": "Los turnos duran 30 minutos. Los horarios libres son los rangos de agenda del medico (para esa especialidad y sede) menos los turnos confirmados. No exponen datos de otros pacientes. Correr despues de \"Semana 3\" para que exista agenda en {{fecha_turnos}}."
+        },
+        {
+          "name": "Semana 4 - Busqueda de pacientes (operador, medico y administrador)",
+          "item": [
+            {
+              "name": "Buscar paciente por DNI (Operador)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('datos es un arreglo', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_operador}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/pacientes?dni=36000960",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "pacientes"
+                  ],
+                  "query": [
+                    {
+                      "key": "dni",
+                      "value": "36000960"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Buscar paciente por apellido (Medico)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('datos es un arreglo', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_medico}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/pacientes?apellido=Friggeri",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "pacientes"
+                  ],
+                  "query": [
+                    {
+                      "key": "apellido",
+                      "value": "Friggeri"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Buscar paciente por apellido (Administrador)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('datos es un arreglo', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/pacientes?apellido=Friggeri",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "pacientes"
+                  ],
+                  "query": [
+                    {
+                      "key": "apellido",
+                      "value": "Friggeri"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Buscar paciente sin dni ni apellido (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_operador}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/pacientes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "pacientes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Buscar paciente con rol paciente (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/pacientes?dni=36000960",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "pacientes"
+                  ],
+                  "query": [
+                    {
+                      "key": "dni",
+                      "value": "36000960"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Buscar paciente sin token (401)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/pacientes?dni=36000960",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "pacientes"
+                  ],
+                  "query": [
+                    {
+                      "key": "dni",
+                      "value": "36000960"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Semana 4 - Usuarios (solo administrador)",
+          "item": [
+            {
+              "name": "Listar Usuarios paginado (Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('respuesta paginada', () => { const d = pm.response.json().datos; pm.expect(d).to.have.property('items'); pm.expect(d).to.have.property('total'); pm.expect(d).to.have.property('totalPaginas'); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios?page=1&pageSize=10",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar Usuarios filtrando por rol y sede (Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('respuesta paginada', () => { const d = pm.response.json().datos; pm.expect(d).to.have.property('items'); pm.expect(d).to.have.property('total'); pm.expect(d).to.have.property('totalPaginas'); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios?rol=medico&id_sede=1&page=1&pageSize=10",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios"
+                  ],
+                  "query": [
+                    {
+                      "key": "rol",
+                      "value": "medico"
+                    },
+                    {
+                      "key": "id_sede",
+                      "value": "1"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar Usuarios filtrando por nombre y apellido (Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('respuesta paginada', () => { const d = pm.response.json().datos; pm.expect(d).to.have.property('items'); pm.expect(d).to.have.property('total'); pm.expect(d).to.have.property('totalPaginas'); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios?nombre=Ana&apellido=Lopez",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios"
+                  ],
+                  "query": [
+                    {
+                      "key": "nombre",
+                      "value": "Ana"
+                    },
+                    {
+                      "key": "apellido",
+                      "value": "Lopez"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Crear Medico con sede y especialidades (Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "const json = pm.response.json();",
+                      "if (json && json.datos && json.datos.id) {",
+                      "  pm.collectionVariables.set('usuario_id', json.datos.id);",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const n = String(30000000 + Math.floor(Math.random() * 9000000));",
+                      "pm.collectionVariables.set('dni_nuevo', n);",
+                      "pm.collectionVariables.set('email_nuevo', 'u' + n + '@clinica.com');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Carlos\",\n  \"apellido\": \"Prueba\",\n  \"dni\": \"{{dni_nuevo}}\",\n  \"email\": \"{{email_nuevo}}\",\n  \"password\": \"123456\",\n  \"fecha_nacimiento\": \"1985-03-12\",\n  \"telefono\": \"3424000000\",\n  \"rol\": \"medico\",\n  \"id_sede\": 1,\n  \"especialidades\": [1]\n}"
+                }
+              }
+            },
+            {
+              "name": "Crear Operador con sede (Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const n = String(30000000 + Math.floor(Math.random() * 9000000));",
+                      "pm.collectionVariables.set('dni_nuevo', n);",
+                      "pm.collectionVariables.set('email_nuevo', 'u' + n + '@clinica.com');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Lucia\",\n  \"apellido\": \"Prueba\",\n  \"dni\": \"{{dni_nuevo}}\",\n  \"email\": \"{{email_nuevo}}\",\n  \"password\": \"123456\",\n  \"fecha_nacimiento\": \"1990-07-01\",\n  \"telefono\": \"3424000001\",\n  \"rol\": \"operador\",\n  \"id_sede\": 2\n}"
+                }
+              }
+            },
+            {
+              "name": "Crear Administrador sin sede (Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const n = String(30000000 + Math.floor(Math.random() * 9000000));",
+                      "pm.collectionVariables.set('dni_nuevo', n);",
+                      "pm.collectionVariables.set('email_nuevo', 'u' + n + '@clinica.com');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Mario\",\n  \"apellido\": \"Prueba\",\n  \"dni\": \"{{dni_nuevo}}\",\n  \"email\": \"{{email_nuevo}}\",\n  \"password\": \"123456\",\n  \"fecha_nacimiento\": \"1982-11-20\",\n  \"rol\": \"administrador\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Crear Medico sin sede (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const n = String(30000000 + Math.floor(Math.random() * 9000000));",
+                      "pm.collectionVariables.set('dni_nuevo', n);",
+                      "pm.collectionVariables.set('email_nuevo', 'u' + n + '@clinica.com');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Sin\",\n  \"apellido\": \"Sede\",\n  \"dni\": \"{{dni_nuevo}}\",\n  \"email\": \"{{email_nuevo}}\",\n  \"password\": \"123456\",\n  \"fecha_nacimiento\": \"1985-03-12\",\n  \"rol\": \"medico\",\n  \"especialidades\": [1]\n}"
+                }
+              }
+            },
+            {
+              "name": "Crear usuario con rol paciente (400: los pacientes se registran solos)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const n = String(30000000 + Math.floor(Math.random() * 9000000));",
+                      "pm.collectionVariables.set('dni_nuevo', n);",
+                      "pm.collectionVariables.set('email_nuevo', 'u' + n + '@clinica.com');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Pa\",\n  \"apellido\": \"Ciente\",\n  \"dni\": \"{{dni_nuevo}}\",\n  \"email\": \"{{email_nuevo}}\",\n  \"password\": \"123456\",\n  \"fecha_nacimiento\": \"1990-01-01\",\n  \"rol\": \"paciente\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Crear usuario con DNI repetido (409)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 409', () => pm.response.to.have.status(409));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Repetido\",\n  \"apellido\": \"Prueba\",\n  \"dni\": \"18222333\",\n  \"email\": \"repetido@clinica.com\",\n  \"password\": \"123456\",\n  \"fecha_nacimiento\": \"1990-01-01\",\n  \"rol\": \"operador\",\n  \"id_sede\": 1\n}"
+                }
+              }
+            },
+            {
+              "name": "Obtener Usuario por id (Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios/{{usuario_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios",
+                    "{{usuario_id}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Obtener Usuario inexistente (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios/999999",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios",
+                    "999999"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Modificar Usuario medico: sede y especialidades (Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios/{{usuario_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios",
+                    "{{usuario_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Carlos\",\n  \"apellido\": \"Modificado\",\n  \"email\": \"{{email_nuevo}}\",\n  \"telefono\": \"3424000009\",\n  \"fecha_nacimiento\": \"1985-03-12\",\n  \"id_sede\": 2,\n  \"especialidades\": [1]\n}"
+                }
+              }
+            },
+            {
+              "name": "Modificar Usuario inexistente (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios/999999",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios",
+                    "999999"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"X\",\n  \"apellido\": \"Y\",\n  \"email\": \"x@clinica.com\",\n  \"fecha_nacimiento\": \"1990-01-01\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Listar Usuarios con rol paciente (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar Usuarios con rol operador (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_operador}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Crear Usuario sin token (401)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/usuarios",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "usuarios"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"X\",\n  \"apellido\": \"Y\",\n  \"dni\": \"30000001\",\n  \"email\": \"x@clinica.com\",\n  \"password\": \"123456\",\n  \"fecha_nacimiento\": \"1990-01-01\",\n  \"rol\": \"administrador\"\n}"
+                }
+              }
+            }
+          ],
+          "description": "Alta y edicion de operador, medico y administrador. El operador y el medico tienen sede; el administrador no. Al medico se le asignan ademas sus especialidades. Cada alta y modificacion queda en la auditoria. Los DNI y emails de prueba se generan al azar para poder repetir la corrida."
+        },
+        {
+          "name": "Semana 4 - Auditoria (solo administrador)",
+          "item": [
+            {
+              "name": "Listar Auditoria paginada, mas reciente primero (Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('respuesta paginada', () => { const d = pm.response.json().datos; pm.expect(d).to.have.property('items'); pm.expect(d).to.have.property('total'); pm.expect(d).to.have.property('totalPaginas'); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auditoria?page=1&pageSize=10",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auditoria"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar Auditoria con filtros de usuario, entidad y fechas (Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('respuesta paginada', () => { const d = pm.response.json().datos; pm.expect(d).to.have.property('items'); pm.expect(d).to.have.property('total'); pm.expect(d).to.have.property('totalPaginas'); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auditoria?usuario=Gomez&entidad=usuario&desde={{fecha_hoy}}&hasta={{fecha_hoy}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auditoria"
+                  ],
+                  "query": [
+                    {
+                      "key": "usuario",
+                      "value": "Gomez"
+                    },
+                    {
+                      "key": "entidad",
+                      "value": "usuario"
+                    },
+                    {
+                      "key": "desde",
+                      "value": "{{fecha_hoy}}"
+                    },
+                    {
+                      "key": "hasta",
+                      "value": "{{fecha_hoy}}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar Auditoria con rol operador (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_operador}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auditoria",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auditoria"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar Auditoria sin token (401)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/auditoria",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auditoria"
+                  ]
+                }
+              }
+            }
+          ],
+          "description": "Solo lectura. Filtros opcionales: usuario (nombre o apellido), entidad, desde y hasta (AAAA-MM-DD). Entidades registradas: sede, especialidad, cobertura, agenda, usuario, turno y historial_clinico."
+        },
+        {
+          "name": "Semana 4 - Reportes (solo administrador)",
+          "item": [
+            {
+              "name": "Obtener Reportes (Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('incluye los cuatro indicadores', () => { const d = pm.response.json().datos; pm.expect(d).to.have.property('turnosPorEspecialidad'); pm.expect(d).to.have.property('turnosPorSede'); pm.expect(d).to.have.property('rankingMedicos'); pm.expect(d).to.have.property('tasaCancelacion'); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/reportes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "reportes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Obtener Reportes filtrados por rango de fechas (Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_admin}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/reportes?desde=2020-01-01&hasta={{fecha_turnos}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "reportes"
+                  ],
+                  "query": [
+                    {
+                      "key": "desde",
+                      "value": "2020-01-01"
+                    },
+                    {
+                      "key": "hasta",
+                      "value": "{{fecha_turnos}}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Obtener Reportes con rol medico (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_medico}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/reportes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "reportes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Obtener Reportes sin token (401)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/reportes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "reportes"
+                  ]
+                }
+              }
+            }
+          ],
+          "description": "Indicadores: turnos por especialidad, turnos por sede, ranking de medicos por turnos atendidos y tasa de cancelacion. Filtro opcional por rango de fechas (desde y hasta)."
+        },
+        {
+          "name": "Semana 4 - Permisos de agenda por sede y lectura de catalogos",
+          "item": [
+            {
+              "name": "Crear Agenda (Operador en otra sede) (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_operador}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/agenda",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "agenda"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"13:00\",\n  \"fecha\": \"{{fecha_prueba}}\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 2\n}"
+                }
+              }
+            },
+            {
+              "name": "Listar Agenda de otra sede (Operador: la consulta si esta permitida)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('datos es un arreglo', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_operador}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/agenda?id_sede=2",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "agenda"
+                  ],
+                  "query": [
+                    {
+                      "key": "id_sede",
+                      "value": "2"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar Sedes (Paciente: lectura permitida a cualquier sesion)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('datos es un arreglo', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/sedes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sedes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar Especialidades (Paciente: lectura permitida a cualquier sesion)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('datos es un arreglo', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token_paciente}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/especialidades",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "especialidades"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar Sedes sin token (401)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/sedes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "sedes"
+                  ]
+                }
+              }
+            }
+          ],
+          "description": "El operador solo modifica la agenda de su propia sede (403 en otro caso), pero puede consultar la de las demas. Sedes y especialidades se leen con cualquier sesion; alta, modificacion y baja siguen siendo del administrador."
+        }
+      ],
+      "description": "Endpoints agregados o modificados para el frontend. Requieren haber corrido antes \"Auth - Login por rol\" para tener los tokens."
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Fechas de prueba siempre futuras (formato AAAA-MM-DD)",
+          "const f = (dias) => { const d = new Date(); d.setDate(d.getDate() + dias); return d.toISOString().slice(0, 10); };",
+          "pm.collectionVariables.set('fecha_hoy', f(0));",
+          "pm.collectionVariables.set('fecha_prueba', f(20));",
+          "pm.collectionVariables.set('fecha_prueba2', f(21));",
+          "pm.collectionVariables.set('fecha_turnos', f(22));"
+        ]
+      }
     }
   ]
 }
