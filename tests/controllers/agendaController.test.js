@@ -2,7 +2,14 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import pool from "../../src/database/db.js";
-import { crearAgenda, listarAgenda, modificarAgenda, eliminarAgenda } from "../../src/controllers/agendaController.js";
+import {
+  crearAgenda,
+  crearAgendaRecurrente,
+  fechasRecurrentes,
+  listarAgenda,
+  modificarAgenda,
+  eliminarAgenda,
+} from "../../src/controllers/agendaController.js";
 import { mockRes, mockQuery } from "../helpers/http.js";
 
 const AGENDA_VALIDA = {
@@ -254,4 +261,68 @@ test("eliminarAgenda permite a un medico eliminar su propia agenda en cualquiera
   await eliminarAgenda(req, res);
 
   assert.equal(res.statusCode, 200);
+});
+
+test("fechasRecurrentes devuelve solo los días de semana pedidos (1 = lunes ... 7 = domingo)", () => {
+  // En enero de 2999 los lunes caen 7 y 14, y los miércoles 2 y 9
+  assert.deepEqual(fechasRecurrentes("2999-01-01", "2999-01-14", [1, 3]), [
+    "2999-01-02",
+    "2999-01-07",
+    "2999-01-09",
+    "2999-01-14",
+  ]);
+});
+
+test("crearAgendaRecurrente rechaza dias_semana vacío o inválido", async () => {
+  const base = { ...AGENDA_VALIDA, fecha_desde: "2999-01-01", fecha_hasta: "2999-01-31" };
+  for (const dias of [undefined, [], [0], [8], ["x"]]) {
+    const res = mockRes();
+    await crearAgendaRecurrente({ body: { ...base, dias_semana: dias } }, res);
+    assert.equal(res.statusCode, 400);
+  }
+});
+
+test("crearAgendaRecurrente rechaza rangos de más de 92 días", async () => {
+  const res = mockRes();
+  await crearAgendaRecurrente(
+    {
+      body: { ...AGENDA_VALIDA, fecha_desde: "2999-01-01", fecha_hasta: "2999-12-31", dias_semana: [1] },
+    },
+    res
+  );
+  assert.equal(res.statusCode, 400);
+  assert.match(res.body.estado, /92 días/);
+});
+
+test("crearAgendaRecurrente crea las fechas libres y omite las que se superponen", async (t) => {
+  let insertadas = 0;
+  t.mock.method(pool, "query", async (sql, valores) => {
+    if (/FROM usuario WHERE id = ? AND rol = 'medico'/.test(sql)) return [[{ id: 1 }]];
+    if (/FROM especialidad WHERE id = ?/.test(sql)) return [[{ id: 1 }]];
+    if (/FROM sede WHERE id = ?/.test(sql)) return [[{ id: 1 }]];
+    if (/FROM agenda WHERE/.test(sql)) {
+      // el lunes 2999-01-07 ya tiene un bloque que se superpone
+      return [valores[1] === "2999-01-07" ? [{ id: 99 }] : []];
+    }
+    if (/INSERT INTO agenda/.test(sql)) return [{ insertId: ++insertadas + 100 }];
+    return [{ insertId: 1 }];
+  });
+
+  const res = mockRes();
+  await crearAgendaRecurrente(
+    {
+      body: {
+        ...AGENDA_VALIDA,
+        fecha_desde: "2999-01-01",
+        fecha_hasta: "2999-01-14",
+        dias_semana: [1],
+      },
+      usuario: { id: 1, rol: "medico", id_sede: null },
+    },
+    res
+  );
+
+  assert.equal(res.statusCode, 201);
+  assert.deepEqual(res.body.datos.creadas.map((c) => c.fecha), ["2999-01-14"]);
+  assert.deepEqual(res.body.datos.omitidas.map((o) => o.fecha), ["2999-01-07"]);
 });

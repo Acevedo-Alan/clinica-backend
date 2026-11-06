@@ -545,7 +545,7 @@ test("misTurnos devuelve el listado paginado del paciente autenticado", async (t
     pool,
     "query",
     mockQuery([
-      [/SELECT COUNT\(\*\) AS total FROM turno WHERE id_paciente = \?/, [[{ total: 1 }]]],
+      [/SELECT COUNT\(\*\) AS total FROM turno t WHERE t.id_paciente = \?/, [[{ total: 1 }]]],
       [
         /WHERE t\.id_paciente = \?/,
         [[{ id: 1, medico_apellido: "Lopez", especialidad_descripcion: "Traumatologia", sede_nombre: "Sede Centro" }]],
@@ -563,4 +563,34 @@ test("misTurnos devuelve el listado paginado del paciente autenticado", async (t
   assert.equal(res.body.datos.items.length, 1);
   assert.equal(res.body.datos.items[0].medico_apellido, "Lopez");
   assert.equal(res.body.datos.items[0].sede_nombre, "Sede Centro");
+});
+
+test("misTurnos con tab=proximos filtra confirmados futuros y ordena ascendente", async (t) => {
+  const consultas = [];
+  t.mock.method(pool, "query", async (sql) => {
+    consultas.push(sql);
+    return /COUNT/.test(sql) ? [[{ total: 0 }]] : [[]];
+  });
+
+  const res = mockRes();
+  await misTurnos({ query: { tab: "proximos" }, usuario: { id: 7 } }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.match(consultas[0], /estado = 'confirmado' AND t\.fecha >= CURDATE\(\)/);
+  assert.match(consultas[1], /ORDER BY t\.fecha ASC, t\.hora ASC/);
+});
+
+test("misTurnos con tab=historial excluye los próximos y ordena descendente", async (t) => {
+  const consultas = [];
+  t.mock.method(pool, "query", async (sql) => {
+    consultas.push(sql);
+    return /COUNT/.test(sql) ? [[{ total: 0 }]] : [[]];
+  });
+
+  const res = mockRes();
+  await misTurnos({ query: { tab: "historial" }, usuario: { id: 7 } }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.match(consultas[0], /NOT \(t\.estado = 'confirmado' AND t\.fecha >= CURDATE\(\)\)/);
+  assert.match(consultas[1], /ORDER BY t\.fecha DESC, t\.hora DESC/);
 });

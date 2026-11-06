@@ -49,7 +49,7 @@ CREATE TABLE `especialidad` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 INSERT INTO `especialidad` (`id`, `descripcion`) VALUES
-(1, 'Traumatologia');
+(1, 'Traumatología');
 
 -- --------------------------------------------------------
 -- Estructura de tabla para la tabla `usuario`

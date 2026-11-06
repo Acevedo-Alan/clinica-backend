@@ -17,6 +17,7 @@ import notificacionRoutes from "./routes/notificacionRoutes.js";
 import medicoRoutes from "./routes/medicoRoutes.js";
 import pacienteRoutes from "./routes/pacienteRoutes.js";
 import disponibilidadRoutes from "./routes/disponibilidadRoutes.js";
+import publicoRoutes from "./routes/publicoRoutes.js";
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use("/notificaciones", notificacionRoutes);
 app.use("/medicos", medicoRoutes);
 app.use("/pacientes", pacienteRoutes);
 app.use("/disponibilidad", disponibilidadRoutes);
+app.use("/publico", publicoRoutes);
 
 // 404 - también respeta el formato uniforme
 app.use((req, res) => {

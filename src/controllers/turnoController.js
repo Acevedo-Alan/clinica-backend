@@ -382,8 +382,21 @@ export async function misTurnos(req, res) {
     const { id } = req.usuario;
     const { page, pageSize, offset } = parsePaginacion(req.query);
 
+    // ?tab=proximos -> turnos confirmados de hoy en adelante (el más cercano primero)
+    // ?tab=historial -> el resto: atendidos, cancelados y pasados (el más reciente primero)
+    // sin tab -> todos, del más próximo al más lejano
+    const { tab } = req.query;
+    let filtroTab = "";
+    let orden = "t.fecha ASC, t.hora ASC";
+    if (tab === "proximos") {
+      filtroTab = "AND t.estado = 'confirmado' AND t.fecha >= CURDATE()";
+    } else if (tab === "historial") {
+      filtroTab = "AND NOT (t.estado = 'confirmado' AND t.fecha >= CURDATE())";
+      orden = "t.fecha DESC, t.hora DESC";
+    }
+
     const [[{ total }]] = await pool.query(
-      "SELECT COUNT(*) AS total FROM turno WHERE id_paciente = ?",
+      `SELECT COUNT(*) AS total FROM turno t WHERE t.id_paciente = ? ${filtroTab}`,
       [id]
     );
 
@@ -397,8 +410,8 @@ export async function misTurnos(req, res) {
        JOIN usuario m ON m.id = a.id_medico
        JOIN especialidad e ON e.id = a.id_especialidad
        JOIN sede s ON s.id = a.id_sede
-       WHERE t.id_paciente = ?
-       ORDER BY t.fecha ASC, t.hora ASC
+       WHERE t.id_paciente = ? ${filtroTab}
+       ORDER BY ${orden}
        LIMIT ? OFFSET ?`,
       [id, pageSize, offset]
     );

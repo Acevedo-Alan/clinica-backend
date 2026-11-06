@@ -133,6 +133,124 @@ export async function crearAgenda(req, res) {
   }
 }
 
+// Días máximos que puede abarcar una agenda recurrente (evita altas masivas accidentales).
+const MAX_DIAS_RECURRENCIA = 92;
+
+// Devuelve las fechas "YYYY-MM-DD" entre desde y hasta (inclusive) cuyo día de semana
+// (1 = lunes ... 7 = domingo) está en diasSemana. Se trabaja en UTC para no depender de la zona horaria.
+export function fechasRecurrentes(desde, hasta, diasSemana) {
+  const fechas = [];
+  const fin = new Date(`${hasta}T00:00:00Z`);
+  for (let d = new Date(`${desde}T00:00:00Z`); d <= fin; d.setUTCDate(d.getUTCDate() + 1)) {
+    const diaIso = d.getUTCDay() === 0 ? 7 : d.getUTCDay();
+    if (diasSemana.includes(diaIso)) {
+      fechas.push(d.toISOString().slice(0, 10));
+    }
+  }
+  return fechas;
+}
+
+// POST /agenda/recurrente
+// Crea un bloque de agenda por cada fecha entre fecha_desde y fecha_hasta que caiga en alguno de
+// dias_semana (1 = lunes ... 7 = domingo). Las fechas donde el médico ya tiene un bloque que se
+// superpone se omiten y se informan en la respuesta; el resto se crea.
+export async function crearAgendaRecurrente(req, res) {
+  try {
+    const {
+      hora_entrada,
+      hora_salida,
+      fecha_desde,
+      fecha_hasta,
+      dias_semana,
+      id_medico,
+      id_especialidad,
+      id_sede,
+    } = req.body;
+
+    if (
+      !hora_entrada || !hora_salida || !fecha_desde || !fecha_hasta ||
+      !id_medico || !id_especialidad || !id_sede
+    ) {
+      return respuestaError(
+        res,
+        400,
+        "Faltan datos obligatorios: hora_entrada, hora_salida, fecha_desde, fecha_hasta, dias_semana, id_medico, id_especialidad, id_sede"
+      );
+    }
+
+    const dias = Array.isArray(dias_semana) ? dias_semana.map(Number) : [];
+    if (dias.length === 0 || dias.some((d) => !Number.isInteger(d) || d < 1 || d > 7)) {
+      return respuestaError(res, 400, "dias_semana debe ser una lista de días entre 1 (lunes) y 7 (domingo)");
+    }
+
+    if (hora_entrada >= hora_salida) {
+      return respuestaError(res, 400, "La hora de entrada debe ser anterior a la hora de salida");
+    }
+
+    if (fecha_desde < hoyISO()) {
+      return respuestaError(res, 400, "No se puede crear agenda con fecha pasada");
+    }
+
+    if (fecha_hasta < fecha_desde) {
+      return respuestaError(res, 400, "La fecha hasta no puede ser anterior a la fecha desde");
+    }
+
+    const diasRango =
+      (new Date(`${fecha_hasta}T00:00:00Z`) - new Date(`${fecha_desde}T00:00:00Z`)) / 86400000 + 1;
+    if (diasRango > MAX_DIAS_RECURRENCIA) {
+      return respuestaError(res, 400, `El rango no puede superar los ${MAX_DIAS_RECURRENCIA} días`);
+    }
+
+    const { rol, id, id_sede: sedeToken } = req.usuario;
+
+    if (rol === "medico" && Number(id_medico) !== Number(id)) {
+      return respuestaError(res, 403, "Un médico solo puede crear su propia agenda");
+    }
+
+    if (rol === "operador" && Number(id_sede) !== Number(sedeToken)) {
+      return respuestaError(res, 403, "Un operador solo puede crear agenda en su propia sede");
+    }
+
+    const errorReferencia = await validarReferencias({ id_medico, id_especialidad, id_sede });
+    if (errorReferencia) {
+      return respuestaError(res, 400, errorReferencia);
+    }
+
+    const fechas = fechasRecurrentes(fecha_desde, fecha_hasta, dias);
+    if (fechas.length === 0) {
+      return respuestaError(res, 400, "Ninguna fecha del rango coincide con los días elegidos");
+    }
+
+    const creadas = [];
+    const omitidas = [];
+    for (const fecha of fechas) {
+      if (await existeSuperposicion({ id_medico, fecha, hora_entrada, hora_salida })) {
+        omitidas.push({ fecha, motivo: "Ya tiene un registro de agenda que se superpone" });
+        continue;
+      }
+      const [resultado] = await pool.query(
+        `INSERT INTO agenda (hora_entrada, hora_salida, fecha, id_medico, id_especialidad, id_sede)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [hora_entrada, hora_salida, fecha, id_medico, id_especialidad, id_sede]
+      );
+      creadas.push({ id: resultado.insertId, fecha });
+    }
+
+    await registrarAuditoria(
+      req.usuario.id,
+      "ALTA",
+      "agenda",
+      creadas.length > 0 ? creadas[0].id : 0,
+      `Alta recurrente de agenda del médico ${id_medico} de ${hora_entrada} a ${hora_salida}: ${creadas.length} creadas, ${omitidas.length} omitidas (${fecha_desde} a ${fecha_hasta})`
+    );
+
+    return respuestaOk(res, 201, { creadas, omitidas });
+  } catch (error) {
+    console.error("Error al crear la agenda recurrente:", error);
+    return respuestaError(res, 500, "Error al crear la agenda recurrente");
+  }
+}
+
 // GET /agenda?id_medico=&id_sede=&id_especialidad=&fecha=
 // Paciente la usa para encontrar un id_agenda disponible antes de reservar un turno
 // (POST /turnos), por lo que queda en modo lectura para cualquier rol autenticado.
